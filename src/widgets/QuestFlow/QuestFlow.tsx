@@ -2,6 +2,7 @@
 
 import { useFinancialStore, resetFinancialQuest } from "@/entities/financial/model/financialStore";
 import { AnimatePresence, motion } from "framer-motion";
+import { useState, useEffect } from "react";
 import { YearSelectionStep } from "@/features/quest-steps/YearSelectionStep/YearSelectionStep";
 import { IncomeStep } from "@/features/quest-steps/IncomeStep/IncomeStep";
 import { BudgetStep } from "@/features/quest-steps/BudgetStep/BudgetStep";
@@ -23,6 +24,13 @@ import { ArrowLeft, RefreshCcw } from "lucide-react";
 export function QuestFlow() {
     const { currentStep, goBack, history } = useFinancialStore();
     const canGoBack = history?.length > 0;
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    if (!mounted) return null; // Prevent hydration mismatch
 
     return (
         <div className="w-full max-w-2xl mx-auto relative">

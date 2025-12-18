@@ -2,10 +2,18 @@
 
 import { useFinancialStore } from "@/entities/financial/model/financialStore";
 import { cn } from "@/shared/lib/utils";
+import { useState, useEffect } from "react";
 import { ClipboardList, CheckSquare, Square } from "lucide-react";
 
 export function ActionBoard() {
     const { actionItems, toggleActionItem } = useFinancialStore();
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    if (!mounted) return <div className="hidden xl:flex flex-col w-80 h-screen sticky top-0 bg-background border-l border-border p-6" />;
 
     if (actionItems.length === 0) return null;
 
