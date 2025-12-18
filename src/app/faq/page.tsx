@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { HelpCircle } from "lucide-react";
+import { Footer } from "@/widgets/Footer/Footer";
 
 export default function FAQPage() {
     return (
@@ -54,6 +55,7 @@ export default function FAQPage() {
                     </p>
                 </div>
             </div>
+            <Footer />
         </main>
     );
 }

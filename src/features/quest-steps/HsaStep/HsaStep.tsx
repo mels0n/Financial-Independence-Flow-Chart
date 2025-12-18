@@ -4,6 +4,7 @@ import { useFinancialStore } from "@/entities/financial/model/financialStore";
 import { ConversationalCard } from "@/shared/ui/ConversationalCard/ConversationalCard";
 import { ArrowRight, Receipt, PiggyBank, CalendarClock, Cloud } from "lucide-react";
 import { useState } from "react";
+import { cn } from "@/shared/lib/utils";
 
 export function HsaStep() {
     const { profile, setProfileBase, nextStep, setAllocation, selectedYear, getRemainingBudget } = useFinancialStore();
@@ -114,6 +115,11 @@ export function HsaStep() {
 
     if (stepPhase === "calc") {
         const isMaxed = remainingToMax <= 0;
+        const isOverContributed = remainingToMax < 0;
+
+        // Lump Sum Logic
+        const excessCash = profile.excessCash || 0;
+        const canLumpSum = !isMaxed && excessCash >= remainingToMax;
 
         return (
             <ConversationalCard
@@ -154,11 +160,27 @@ export function HsaStep() {
                                 type="number"
                                 value={alreadyContributed || ''}
                                 onChange={(e) => setAlreadyContributed(Number(e.target.value))}
-                                className="w-full pl-6 pr-3 py-2 bg-secondary rounded-lg font-bold text-right focus:outline-none focus:ring-2 focus:ring-primary/50"
+                                className={cn(
+                                    "w-full pl-6 pr-3 py-2 bg-secondary rounded-lg font-bold text-right focus:outline-none focus:ring-2",
+                                    isOverContributed ? "text-red-500 border-red-500 ring-red-500 focus:ring-red-500" : "focus:ring-primary/50"
+                                )}
                                 placeholder="0"
                             />
                         </div>
                     </div>
+
+                    {isOverContributed && (
+                        <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl flex items-start gap-3">
+                            <div className="text-2xl">🚨</div>
+                            <div>
+                                <h4 className="font-bold text-red-800 dark:text-red-200">Over-Contribution Warning</h4>
+                                <p className="text-sm text-red-700 dark:text-red-300">
+                                    You have exceeded the limit by <strong>${Math.abs(remainingToMax).toLocaleString()}</strong>.
+                                    You must contact your provider to withdraw this "excess contribution" before tax day to avoid a 6% penalty.
+                                </p>
+                            </div>
+                        </div>
+                    )}
 
                     {!isMaxed && (
                         <>
@@ -196,14 +218,35 @@ export function HsaStep() {
                             </button>
                         ) : (
                             <>
-                                <button
-                                    onClick={confirmAllocation}
-                                    className="w-full p-4 bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 transition-all font-bold text-lg"
-                                >
-                                    Allocate ${recommended.toLocaleString()}/mo
-                                </button>
+                                {canLumpSum ? (
+                                    <button
+                                        onClick={() => {
+                                            // Deduct from excess cash?
+                                            setProfileBase({ excessCash: excessCash - remainingToMax });
+                                            useFinancialStore.getState().addActionItem({
+                                                id: 'hsa-lump-sum',
+                                                label: `Transfer $${remainingToMax.toLocaleString()} from Savings to HSA`
+                                            });
+                                            setStepPhase("strategy");
+                                        }}
+                                        className="w-full p-4 bg-emerald-600 text-white rounded-2xl hover:bg-emerald-700 transition-all font-bold text-lg flex items-center justify-center gap-2"
+                                    >
+                                        <div className="text-left">
+                                            <div className="text-xs opacity-90 uppercase tracking-wider">Lump Sum Available</div>
+                                            <div>Fund ${remainingToMax.toLocaleString()} from Savings</div>
+                                        </div>
+                                        <ArrowRight className="w-6 h-6" />
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={confirmAllocation}
+                                        className="w-full p-4 bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 transition-all font-bold text-lg"
+                                    >
+                                        Allocate ${recommended.toLocaleString()}/mo
+                                    </button>
+                                )}
                                 <p className="text-xs text-center text-muted-foreground">
-                                    Based on your remaining budget of ${remainingBudget.toLocaleString()}
+                                    Based on remaining budget: ${remainingBudget.toLocaleString()}
                                 </p>
                             </>
                         )}

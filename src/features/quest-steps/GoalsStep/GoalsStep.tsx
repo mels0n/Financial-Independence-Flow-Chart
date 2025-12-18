@@ -6,7 +6,7 @@ import { ArrowRight, Rocket, Car, GraduationCap, Home } from "lucide-react";
 import { useState } from "react";
 
 export function GoalsStep() {
-    const { nextStep, setAllocation, getRemainingBudget } = useFinancialStore();
+    const { nextStep, setAllocation, getRemainingBudget, profile, setProfileBase } = useFinancialStore();
     const remaining = getRemainingBudget();
 
     const [hasGoals, setHasGoals] = useState<boolean | null>(null);
@@ -30,6 +30,10 @@ export function GoalsStep() {
 
     const affordable = monthlySavings <= remaining;
 
+    // Lump Sum Logic
+    const excessCash = profile.excessCash || 0;
+    const canLumpSum = targetVal > 0 && excessCash >= targetVal;
+
     const handleCommit = () => {
         if (targetVal > 0 && affordable) {
             setAllocation('future-goals', monthlySavings);
@@ -47,6 +51,20 @@ export function GoalsStep() {
         }
         nextStep();
     };
+
+    const handleLumpSumCommit = () => {
+        // Deduct from excess cash
+        setProfileBase({ excessCash: excessCash - targetVal });
+
+        // Add action item for transfer
+        useFinancialStore.getState().addActionItem({
+            id: 'save-goal-lump-sum',
+            label: `Transfer $${targetVal.toLocaleString()} from Initial Savings to new '${goalName}' HYSA`
+        });
+
+        // Skip allocation since it's fully funded
+        nextStep();
+    }
 
     if (hasGoals === null) {
         return (
@@ -144,9 +162,27 @@ export function GoalsStep() {
 
                     {targetVal > 0 ? (
                         <div className="mb-4">
-                            {targetVal <= remaining ? (
+                            {canLumpSum ? (
+                                <div className="p-4 bg-emerald-200 dark:bg-emerald-800 rounded-xl mb-4">
+                                    <h5 className="font-bold text-emerald-900 dark:text-emerald-100 flex items-center gap-2">
+                                        🚀 Fully Funded by Savings!
+                                    </h5>
+                                    <p className="text-sm text-emerald-800 dark:text-emerald-200 mt-1">
+                                        You have <strong>${excessCash.toLocaleString()}</strong> in unallocated cash.
+                                        You can fund this goal immediately.
+                                    </p>
+                                    <button
+                                        onClick={handleLumpSumCommit}
+                                        className="mt-3 w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold shadow-sm"
+                                    >
+                                        Fund ${targetVal.toLocaleString()} Now
+                                    </button>
+                                </div>
+                            ) : null}
+
+                            {targetVal <= remaining && !canLumpSum ? (
                                 <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg text-emerald-800 dark:text-emerald-200 text-sm mb-2">
-                                    <strong>🚀 Good News!</strong> You have enough monthly budget (${remaining.toLocaleString()}) to fund this goal in a single month! Do you already have this cash saved?
+                                    <strong>Good News!</strong> You have enough monthly budget (${remaining.toLocaleString()}) to fund this goal in a single month! Do you already have this cash saved?
                                 </div>
                             ) : null}
                             <p className="text-sm text-foreground">Save monthly:</p>

@@ -3,6 +3,7 @@
 import { QuestFlow } from "@/widgets/QuestFlow/QuestFlow";
 import { QuestBar } from "@/widgets/QuestBar/QuestBar";
 import { ActionBoard } from "@/widgets/ActionBoard/ActionBoard";
+import { Footer } from "@/widgets/Footer/Footer";
 
 export default function Home() {
     return (
@@ -16,6 +17,7 @@ export default function Home() {
                 </div>
 
                 <QuestFlow />
+                <Footer />
             </div>
             <ActionBoard />
         </main>

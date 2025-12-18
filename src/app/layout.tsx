@@ -18,16 +18,7 @@ export default function RootLayout({
         <html lang="en" className="dark">
             <body className={inter.className + " min-h-screen bg-background flex flex-col"}>
                 {children}
-                <footer className="py-6 text-center text-xs text-muted-foreground mt-auto">
-                    <div className="flex justify-center gap-6 mb-2">
-                        <a href="/howto" className="hover:text-primary transition-colors">How to Use</a>
-                        <span className="text-border">|</span>
-                        <a href="/faq" className="hover:text-primary transition-colors">FAQ</a>
-                    </div>
-                    <p className="opacity-50">
-                        Financial Quest &copy; {new Date().getFullYear()}
-                    </p>
-                </footer>
+                {children}
             </body>
         </html>
     );

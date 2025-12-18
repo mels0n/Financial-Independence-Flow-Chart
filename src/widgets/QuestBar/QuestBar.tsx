@@ -28,6 +28,7 @@ export function QuestBar() {
         { id: 'goals', label: 'Future Goals' },
         { id: 'education', label: 'Education / 529' },
         { id: 'mega-backdoor', label: 'Mega Backdoor' },
+        { id: 'low-interest-debt', label: 'Low Interest Debt' },
         { id: 'taxable', label: 'Taxable Account' },
     ];
 
@@ -36,7 +37,7 @@ export function QuestBar() {
         'year-selection', 'income', 'budget', 'emergency-fund',
         'match-employer', 'debt-payoff', 'emergency-fund-full', 'hsa', 'ira',
         'moderate-debt', 'max-401k', 'goals',
-        'education', 'mega-backdoor', 'taxable',
+        'education', 'mega-backdoor', 'low-interest-debt', 'taxable',
         'completed'
     ];
 

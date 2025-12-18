@@ -37,6 +37,12 @@ export function Max401kStep() {
     const recommended = Math.min(remainingBudget, monthlyToMax);
     const isMaxed = remainingToMax <= 0;
 
+    // Cash Flow Shifting Logic
+    const excessCash = profile.excessCash || 0;
+    // Suggest shifting if they have significant cash (e.g. > $10k) but their monthly budget (recommended) won't max it out
+    // OR if they just have a ton of cash.
+    const showCashFlowShifting = !isMaxed && excessCash > 10000 && recommended < monthlyToMax;
+
     const handleNext = () => {
         if (!isMaxed && recommended > 0) {
             setAllocation('max-401k', recommended);
@@ -86,6 +92,22 @@ export function Max401kStep() {
                     </div>
                 )}
 
+                {showCashFlowShifting && (
+                    <div className="p-4 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-xl">
+                        <h4 className="font-bold text-indigo-900 dark:text-indigo-100 flex items-center gap-2 mb-2">
+                            🔄 Cash Flow Shifting Strategy
+                        </h4>
+                        <p className="text-sm text-indigo-800 dark:text-indigo-200 mb-2">
+                            You have <strong>${excessCash.toLocaleString()}</strong> in excess cash, but your monthly budget only supports contributing <strong>${recommended.toLocaleString()}/mo</strong> to your 401k.
+                        </p>
+                        <p className="text-sm text-indigo-800 dark:text-indigo-200">
+                            <strong>The Hack:</strong> Temporarily set your 401k contribution to <strong>100% of your paycheck</strong>.
+                            Use your cash savings to pay your bills during this time.
+                            This effectively "moves" your savings into your tax-advantaged 401k!
+                        </p>
+                    </div>
+                )}
+
                 {/* Already Contributed Input */}
                 <div className="p-4 border border-border rounded-xl flex items-center justify-between bg-card">
                     <div>
@@ -116,6 +138,6 @@ export function Max401kStep() {
                     {isMaxed ? "Done. Next" : `Allocate $${recommended.toLocaleString()}/mo & Next`} <ArrowRight className="w-5 h-5" />
                 </button>
             </div>
-        </ConversationalCard>
+        </ConversationalCard >
     );
 }

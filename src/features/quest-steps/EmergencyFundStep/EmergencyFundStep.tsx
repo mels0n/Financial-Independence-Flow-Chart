@@ -124,14 +124,15 @@ export function EmergencyFundStep({ mode = "starter" }: EmergencyFundStepProps) 
         const shortage = Math.max(0, finalTarget - val);
         const excess = Math.max(0, val - finalTarget);
 
-        // If we have excess cash, store it for later steps (Lump Sum logic)
-        // We only do this check in "Full" mode to be safe, or both? 
-        // Let's do it in Full mode as that's the final EF check.
-        if (mode === 'full' && excess > 0) {
-            // We can just set a flag or value in store? 
-            // faster: useFinancialStore.getState().setProfileBase({ excessCash: excess }) -- need to add to type?
-            // For now, let's just make sure we don't block them.
-        }
+        // Update Excess Cash in store (useEffect or immediate?)
+        // Better to do it in a useEffect to avoid render loops, OR just when we render this advice state?
+        // We'll trust the store update in the 'finishStep' logic? No, finishStep only saved the Amount.
+        // We need to save the EXCESS now.
+        useEffect(() => {
+            if (excess !== profile.excessCash) {
+                setProfileBase({ excessCash: excess });
+            }
+        }, [excess, profile.excessCash, setProfileBase]);
 
         // Calculate cap: Don't allocate more than the shortage itself (1 month payoff)
         // or the remaining budget, whichever is smaller.
@@ -208,6 +209,18 @@ export function EmergencyFundStep({ mode = "starter" }: EmergencyFundStepProps) 
                             />
                         </div>
                     </div>
+
+                    {isFunded && excess > 0 && (
+                        <div className="p-4 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-100 dark:border-emerald-800 rounded-xl">
+                            <h4 className="font-bold text-emerald-900 dark:text-emerald-100 flex items-center gap-2 mb-1">
+                                🚀 Surplus Detected!
+                            </h4>
+                            <p className="text-sm text-emerald-800 dark:text-emerald-200">
+                                You have <strong>${excess.toLocaleString()}</strong> in excess cash above your emergency fund.
+                                We will use this to "Lump Sum" fund your investments in the next steps!
+                            </p>
+                        </div>
+                    )}
 
                     {!isFunded && (
                         <div className="p-4 bg-secondary/50 rounded-xl border border-border">

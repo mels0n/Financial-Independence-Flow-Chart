@@ -32,6 +32,7 @@ interface FinancialProfile {
     isMatchingFull: boolean;
     hasHighInterestDebt: boolean;
     hasHsaEligiblePlan: boolean;
+    excessCash: number;
 }
 
 export interface ActionItem {
@@ -83,6 +84,7 @@ export const useFinancialStore = create<FinancialState>()(
                 isMatchingFull: false,
                 hasHighInterestDebt: false,
                 hasHsaEligiblePlan: false,
+                excessCash: 0,
             },
             allocations: {},
             actionItems: [],

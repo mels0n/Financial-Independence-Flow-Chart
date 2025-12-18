@@ -7,9 +7,10 @@ import { FINANCIAL_CONSTANTS } from "@/shared/config/financial-constants";
 import { useState } from "react";
 import { ArrowRight, PiggyBank, TrendingUp } from "lucide-react";
 import { JargonTerm } from "@/shared/ui/JargonTerm/JargonTerm";
+import { cn } from "@/shared/lib/utils";
 
 export function IraStep() {
-    const { selectedYear, nextStep, profile, setAllocation, getRemainingBudget } = useFinancialStore();
+    const { selectedYear, nextStep, profile, setAllocation, getRemainingBudget, setProfileBase } = useFinancialStore();
     const limits = FINANCIAL_CONSTANTS[selectedYear].ira;
     const [alreadyContributed, setAlreadyContributed] = useState(0);
 
@@ -24,7 +25,12 @@ export function IraStep() {
     // We recommend the LESSER of: What they have left in budget, OR what they have left to max IRA (logic unchanged)
     const recommended = Math.min(remainingBudget, monthlyToMax);
 
+    const isOverContributed = remainingToMax < 0;
     const isMaxed = remainingToMax <= 0;
+
+    // Lump Sum Logic
+    const excessCash = profile.excessCash || 0;
+    const canLumpSum = !isMaxed && excessCash >= remainingToMax;
 
     return (
         <ConversationalCard
@@ -70,11 +76,27 @@ export function IraStep() {
                             type="number"
                             value={alreadyContributed || ''}
                             onChange={(e) => setAlreadyContributed(Number(e.target.value))}
-                            className="w-full pl-6 pr-3 py-2 bg-secondary rounded-lg font-bold text-right focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground"
+                            className={cn(
+                                "w-full pl-6 pr-3 py-2 bg-secondary rounded-lg font-bold text-right focus:outline-none focus:ring-2",
+                                isOverContributed ? "text-red-500 border-red-500 ring-red-500 focus:ring-red-500" : "focus:ring-primary/50 text-foreground"
+                            )}
                             placeholder="0"
                         />
                     </div>
                 </div>
+
+                {isOverContributed && (
+                    <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl flex items-start gap-3">
+                        <div className="text-2xl">🚨</div>
+                        <div>
+                            <h4 className="font-bold text-red-800 dark:text-red-200">Over-Contribution Warning</h4>
+                            <p className="text-sm text-red-700 dark:text-red-300">
+                                You have exceeded the limit by <strong>${Math.abs(remainingToMax).toLocaleString()}</strong>.
+                                You must withdraw the excess before tax time to avoid penalties.
+                            </p>
+                        </div>
+                    </div>
+                )}
 
                 {!isMaxed && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
@@ -107,6 +129,17 @@ export function IraStep() {
                             return;
                         }
 
+                        // Lump Sum Integration
+                        if (canLumpSum) {
+                            setProfileBase({ excessCash: excessCash - remainingToMax });
+                            useFinancialStore.getState().addActionItem({
+                                id: 'ira-lump-sum',
+                                label: `Transfer $${remainingToMax.toLocaleString()} from Savings to IRA(s)`
+                            });
+                            nextStep();
+                            return;
+                        }
+
                         // Add Allocation & Action Item
                         if (!isMaxed && recommended > 0) {
                             setAllocation('ira', recommended);
@@ -120,11 +153,28 @@ export function IraStep() {
 
                         nextStep();
                     }}
-                    className="w-full p-4 bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 transition-all font-medium flex items-center justify-center gap-2"
+                    className={cn(
+                        "w-full p-4 rounded-2xl transition-all font-medium flex items-center justify-center gap-2",
+                        canLumpSum ? "bg-emerald-600 hover:bg-emerald-700 text-white" : "bg-primary text-primary-foreground hover:bg-primary/90"
+                    )}
                 >
-                    {isMaxed ? "IRA Done. Next Step" : `Allocate $${recommended.toLocaleString()}/mo & Next`} < ArrowRight className="w-5 h-5" />
-                </button >
-            </div >
-        </ConversationalCard >
+                    {isMaxed ? (
+                        <>IRA Done. Next Step <ArrowRight className="w-5 h-5" /></>
+                    ) : (
+                        canLumpSum ? (
+                            <>
+                                <div className="flex flex-col items-start mr-auto">
+                                    <span className="text-xs opacity-90 uppercase tracking-wider">Lump Sum Available</span>
+                                    <span>Fund ${remainingToMax.toLocaleString()} from Savings</span>
+                                </div>
+                                <ArrowRight className="w-6 h-6" />
+                            </>
+                        ) : (
+                            <>Allocate ${recommended.toLocaleString()}/mo & Next <ArrowRight className="w-5 h-5" /></>
+                        )
+                    )}
+                </button>
+            </div>
+        </ConversationalCard>
     );
 }

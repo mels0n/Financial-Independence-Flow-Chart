@@ -1,5 +1,6 @@
 import { ArrowRight, Calculator, CheckCircle2, ShieldCheck } from "lucide-react";
 import Link from "next/link";
+import { Footer } from "@/widgets/Footer/Footer";
 
 export default function HowToPage() {
     return (
@@ -51,6 +52,7 @@ export default function HowToPage() {
                     </Link>
                 </div>
             </div>
+            <Footer />
         </main>
     );
 }
