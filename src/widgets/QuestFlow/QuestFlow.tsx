@@ -19,7 +19,7 @@ import { TaxableStep } from "@/features/quest-steps/TaxableStep/TaxableStep";
 import { EducationStep } from "@/features/quest-steps/EducationStep/EducationStep";
 import { LowInterestDebtStep } from "@/features/quest-steps/LowInterestDebtStep/LowInterestDebtStep";
 
-import { ArrowLeft, RefreshCcw } from "lucide-react";
+import { ArrowLeft, ArrowRight, RefreshCcw } from "lucide-react";
 
 export function QuestFlow() {
     const { currentStep, goBack, history } = useFinancialStore();
@@ -78,6 +78,18 @@ export function QuestFlow() {
                                     You have a clear list of <strong>Action Items</strong> on the right.
                                     Execute them one by one. That is your path forward.
                                 </p>
+                                <div className="mt-6 mb-4 p-4 bg-gradient-to-r from-violet-500/10 to-fuchsia-500/10 rounded-xl border border-violet-500/20 text-left">
+                                    <h4 className="font-bold text-violet-700 dark:text-violet-300 mb-2 flex items-center gap-2">
+                                        🚀 Next Level: Retirement Strategy
+                                    </h4>
+                                    <p className="text-sm text-muted-foreground mb-3">
+                                        Saving is only half the battle. Learn how to optimize your withdrawal strategy.
+                                    </p>
+                                    <a href="https://retirement.melson.us/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-bold text-violet-600 dark:text-violet-400 hover:underline">
+                                        Learn how to draw income in retirement <ArrowRight className="w-4 h-4" />
+                                    </a>
+                                </div>
+
                                 <p className="text-sm border-t border-border pt-4 text-muted-foreground">
                                     <strong>When to return?</strong> Come back next year, when all tasks are done, or whenever your income increases.
                                 </p>
@@ -95,10 +107,23 @@ export function QuestFlow() {
                             <p className="text-muted-foreground text-lg mb-6">
                                 You have allocated every dollar of your budget wisely.
                                 You are on the path to Financial Independence.
-                            </p>
-                            <button onClick={resetFinancialQuest} className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-bold hover:opacity-90 transition-opacity">
-                                Start Over
-                            </button>
+                                <div className="mt-8 mb-8 text-left max-w-md mx-auto">
+                                    <div className="p-4 bg-gradient-to-r from-violet-500/10 to-fuchsia-500/10 rounded-xl border border-violet-500/20">
+                                        <h4 className="font-bold text-violet-700 dark:text-violet-300 mb-2 flex items-center gap-2">
+                                            🎓 Master Class: Withdrawal Strategy
+                                        </h4>
+                                        <p className="text-sm text-muted-foreground mb-3">
+                                            You have built the engine. Now learn how to drive it.
+                                        </p>
+                                        <a href="https://retirement.melson.us/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-bold text-violet-600 dark:text-violet-400 hover:underline">
+                                            Learn how to draw income in retirement <ArrowRight className="w-4 h-4" />
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <button onClick={resetFinancialQuest} className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-bold hover:opacity-90 transition-opacity">
+                                    Start Over
+                                </button>
                         </div>
                     )}
                 </motion.div>
