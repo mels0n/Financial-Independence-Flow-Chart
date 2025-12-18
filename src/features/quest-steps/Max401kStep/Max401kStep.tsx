@@ -35,7 +35,9 @@ export function Max401kStep() {
 
     // We recommend the LESSER of: What they have left in budget, OR what they have left to max 401k
     const recommended = Math.min(remainingBudget, monthlyToMax);
+    const recommended = Math.min(remainingBudget, monthlyToMax);
     const isMaxed = remainingToMax <= 0;
+    const isOverContributed = remainingToMax < 0;
 
     // Cash Flow Shifting Logic
     const excessCash = profile.excessCash || 0;
@@ -120,7 +122,10 @@ export function Max401kStep() {
                             type="number"
                             value={alreadyContributed || ''}
                             onChange={(e) => setAlreadyContributed(Number(e.target.value))}
-                            className="w-full pl-6 pr-3 py-2 bg-secondary rounded-lg font-bold text-right focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground"
+                            className={`w-full pl-6 pr-3 py-2 bg-secondary rounded-lg font-bold text-right focus:outline-none focus:ring-2 ${isOverContributed
+                                    ? "text-red-500 border-red-500 ring-red-500 focus:ring-red-500"
+                                    : "focus:ring-primary/50 text-foreground"
+                                }`}
                             placeholder="0"
                         />
                     </div>
