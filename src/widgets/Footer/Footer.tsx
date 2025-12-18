@@ -8,7 +8,7 @@ export function Footer() {
                 <span className="text-border">|</span>
                 <Link href="/faq" className="hover:text-primary transition-colors">FAQ</Link>
             </div>
-            <p className="opacity-50">
+            <p className="text-muted-foreground/60">
                 Financial Quest &copy; {new Date().getFullYear()}
             </p>
         </footer>

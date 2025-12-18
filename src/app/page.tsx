@@ -3,9 +3,18 @@
 import { Footer } from "@/widgets/Footer/Footer";
 import dynamic from "next/dynamic";
 
-const QuestFlow = dynamic(() => import("@/widgets/QuestFlow/QuestFlow").then((mod) => mod.QuestFlow), { ssr: false });
-const QuestBar = dynamic(() => import("@/widgets/QuestBar/QuestBar").then((mod) => mod.QuestBar), { ssr: false });
-const ActionBoard = dynamic(() => import("@/widgets/ActionBoard/ActionBoard").then((mod) => mod.ActionBoard), { ssr: false });
+const QuestFlow = dynamic(() => import("@/widgets/QuestFlow/QuestFlow").then((mod) => mod.QuestFlow), {
+    ssr: false,
+    loading: () => <div className="w-full h-[600px] animate-pulse bg-muted/10 rounded-3xl" />
+});
+const QuestBar = dynamic(() => import("@/widgets/QuestBar/QuestBar").then((mod) => mod.QuestBar), {
+    ssr: false,
+    loading: () => <div className="hidden lg:flex flex-col w-80 h-screen sticky top-0 bg-background/50 border-r border-border p-6" />
+});
+const ActionBoard = dynamic(() => import("@/widgets/ActionBoard/ActionBoard").then((mod) => mod.ActionBoard), {
+    ssr: false,
+    loading: () => <div className="hidden xl:flex flex-col w-80 h-screen sticky top-0 bg-background/50 border-l border-border p-6" />
+});
 
 export default function Home() {
     return (

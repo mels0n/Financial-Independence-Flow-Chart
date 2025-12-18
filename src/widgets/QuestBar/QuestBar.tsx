@@ -110,7 +110,6 @@ export function QuestBar() {
                                 className={cn(
                                     "flex items-center gap-3 p-3 rounded-xl transition-all",
                                     isActive ? "bg-primary/10 border border-primary/20" : "opacity-90",
-                                    isCompleted ? "opacity-60" : ""
                                 )}
                             >
                                 <div className={cn(
@@ -123,7 +122,7 @@ export function QuestBar() {
                                 </div>
                                 <span className={cn(
                                     "text-sm font-medium",
-                                    isCompleted ? "line-through text-muted-foreground"
+                                    isCompleted ? "line-through text-muted-foreground/80" // Slightly darker than default broken connection
                                         : isActive ? "text-primary font-bold"
                                             : "text-foreground"
                                 )}>

@@ -25,7 +25,7 @@ export function ActionBoard() {
                         className={cn(
                             "w-full flex items-start gap-4 p-4 rounded-2xl text-left transition-all group",
                             item.completed
-                                ? "bg-secondary/30 opacity-60"
+                                ? "bg-secondary/30" // Removed opacity-60
                                 : "bg-card border-2 border-border hover:border-blue-200 dark:hover:border-blue-900 shadow-sm hover:shadow-md"
                         )}
                     >
@@ -38,7 +38,7 @@ export function ActionBoard() {
                         <div className="space-y-1">
                             <span className={cn(
                                 "text-sm font-semibold leading-tight block",
-                                item.completed ? "line-through text-muted-foreground" : "text-foreground"
+                                item.completed ? "line-through text-muted-foreground/80" : "text-foreground" // Improved contrast
                             )}>
                                 {item.label}
                             </span>
