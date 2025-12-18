@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Financial Independence Flowchart (Digitized)
 
-## Getting Started
+A production-grade, interactive digitization of the famous r/personalfinance "Prime Directive" flowchart (v4.3). Built with Next.js App Router and Feature-Sliced Design (FSD).
 
-First, run the development server:
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Next.js](https://img.shields.io/badge/Next.js-14+-black)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.0+-38bdf8)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 🚀 Features
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **Interactive Flowchart**: A zoomable, pannable, and interactive graph implementation using [React Flow](https://reactflow.dev/).
+- **Jargon Buster**: Click on complex financial terms (e.g., "IRA", "HYSA") within nodes to see instant definitions without leaving the flow.
+- **"Real Numbers" Simulator**: Input your monthly income and expenses to see exactly how your money flows through the steps (Logic In-Progress).
+- **Responsive Design**: Fully optimized for mobile and desktop usage.
+- **SEO Optimized**: Includes JSON-LD schemas for `DefinedTermSet` (Glossary) and `FAQPage`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🏗️ Architecture
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+This project strictly adheres to **Feature-Sliced Design (FSD)** methodology for scalability and maintainability.
 
-## Learn More
+- **Layers**:
+  - `app/`: Next.js App Router setup and specific page layouts.
+  - `pages/`: Compositional layer for pages.
+  - `widgets/`: Self-contained UI blocks (`FlowChart`, `DefinitionModal`).
+  - `features/`: User interactions (`chart-navigation`, `flow-simulation`, `jargon-buster`).
+  - `entities/`: Business domain models (`flow-node`, `wallet`, `glossary-term`).
+  - `shared/`: Reusable UI kit and libraries.
 
-To learn more about Next.js, take a look at the following resources:
+See [ARCHITECTURE.md](./src/ARCHITECTURE.md) for a deep dive into the slice boundaries.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🛠️ Getting Started
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/mels0n/Financial-Independence-Flow-Chart.git
+   cd Financial-Independence-Flow-Chart
+   ```
 
-## Deploy on Vercel
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+3. **Run the development server**
+   ```bash
+   npm run dev
+   ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+4. **build for production**
+   ```bash
+   npm run build
+   ```
+
+## 👏 Attribution
+
+The logic and structure of this flowchart are based on the **"Prime Directive" Flowchart Version 4.3** created by **u/happyasianpanda** for the r/personalfinance and r/financialindependence communities.
+
+Original Source: [r/personalfinance Wiki](https://www.reddit.com/r/personalfinance/wiki/commontopics)
+
+## 📄 License
+
+This project is open source and available under the [MIT License](LICENSE).
