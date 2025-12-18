@@ -1,31 +1,34 @@
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-import './globals.css';
-import { generateDefinedTermSchema } from '@shared/lib/seo/schema';
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'Financial Independence Flowchart (v4.3)',
-  description: 'Interactive guide to personal finance, budgeting, and investing based on the Prime Directive.',
+    title: "Financial Quest",
+    description: "A guided path to financial calm.",
 };
 
 export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const schema = generateDefinedTermSchema();
-
-  return (
-    <html lang="en">
-      <head>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-        />
-      </head>
-      <body className={inter.className}>{children}</body>
-    </html>
-  );
+    children,
+}: Readonly<{
+    children: React.ReactNode;
+}>) {
+    return (
+        <html lang="en" className="dark">
+            <body className={inter.className + " min-h-screen bg-background flex flex-col"}>
+                {children}
+                <footer className="py-6 text-center text-xs text-muted-foreground mt-auto">
+                    <div className="flex justify-center gap-6 mb-2">
+                        <a href="/howto" className="hover:text-primary transition-colors">How to Use</a>
+                        <span className="text-border">|</span>
+                        <a href="/faq" className="hover:text-primary transition-colors">FAQ</a>
+                    </div>
+                    <p className="opacity-50">
+                        Financial Quest &copy; {new Date().getFullYear()}
+                    </p>
+                </footer>
+            </body>
+        </html>
+    );
 }
