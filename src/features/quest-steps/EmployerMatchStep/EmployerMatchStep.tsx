@@ -16,8 +16,10 @@ export function EmployerMatchStep() {
     // Simplified State Machine
     type MatchPhase = "ask-me-offer" | "ask-me-match" | "ask-spouse-offer" | "ask-spouse-match" | "advice";
     const [phase, setPhase] = useState<MatchPhase>("ask-me-offer");
+    const [myHasOffer, setMyHasOffer] = useState(false);
 
     const handleMeOffer = (y: boolean) => {
+        setMyHasOffer(y);
         if (y) setPhase("ask-me-match");
         else {
             // No offer for me. Check spouse or done.
@@ -82,7 +84,7 @@ export function EmployerMatchStep() {
     if (phase === "ask-spouse-offer") {
         return (
             <ConversationalCard
-                title="Double Dip? 👯‍♂️"
+                title={myHasOffer ? "Double Dip? 👯‍♂️" : "Spouse's Turn 💍"}
                 description="Does your SPOUSE'S employer offer a match?"
             >
                 <div className="grid grid-cols-2 gap-4">
