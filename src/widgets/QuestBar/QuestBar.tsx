@@ -7,13 +7,6 @@ import { CheckCircle2, Wallet, Trophy, ClipboardList, CheckSquare, Square } from
 
 export function QuestBar() {
     const { profile, getRemainingBudget, currentStep, actionItems, toggleActionItem } = useFinancialStore();
-    const [mounted, setMounted] = useState(false);
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    if (!mounted) return <div className="hidden lg:flex flex-col w-80 h-screen sticky top-0 bg-background border-r border-border p-6" />; // Skeleton-ish placeholder keeping layout stable
 
     const income = profile.monthlyIncome;
     const remaining = getRemainingBudget();

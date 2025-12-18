@@ -24,13 +24,6 @@ import { ArrowLeft, RefreshCcw } from "lucide-react";
 export function QuestFlow() {
     const { currentStep, goBack, history } = useFinancialStore();
     const canGoBack = history?.length > 0;
-    const [mounted, setMounted] = useState(false);
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    if (!mounted) return null; // Prevent hydration mismatch
 
     return (
         <div className="w-full max-w-2xl mx-auto relative">

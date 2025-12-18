@@ -1,9 +1,11 @@
 "use client";
 
-import { QuestFlow } from "@/widgets/QuestFlow/QuestFlow";
-import { QuestBar } from "@/widgets/QuestBar/QuestBar";
-import { ActionBoard } from "@/widgets/ActionBoard/ActionBoard";
 import { Footer } from "@/widgets/Footer/Footer";
+import dynamic from "next/dynamic";
+
+const QuestFlow = dynamic(() => import("@/widgets/QuestFlow/QuestFlow").then((mod) => mod.QuestFlow), { ssr: false });
+const QuestBar = dynamic(() => import("@/widgets/QuestBar/QuestBar").then((mod) => mod.QuestBar), { ssr: false });
+const ActionBoard = dynamic(() => import("@/widgets/ActionBoard/ActionBoard").then((mod) => mod.ActionBoard), { ssr: false });
 
 export default function Home() {
     return (
