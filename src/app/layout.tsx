@@ -18,7 +18,6 @@ export default function RootLayout({
         <html lang="en" className="dark">
             <body className={inter.className + " min-h-screen bg-background flex flex-col"}>
                 {children}
-                {children}
             </body>
         </html>
     );
