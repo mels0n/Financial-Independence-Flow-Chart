@@ -52,6 +52,20 @@ export function EmergencyFundStep({ mode = "starter" }: EmergencyFundStepProps) 
         ? starterTarget
         : (isStable ? fullTarget3 : fullTarget6);
 
+    // Recalculate derived values for effect
+    const derivedVal = parseFloat(currentSavings.replace(/,/g, "")) || 0;
+    const derivedTarget = mode === "starter" ? starterTarget : (isStable ? fullTarget3 : fullTarget6);
+    const derivedExcess = Math.max(0, derivedVal - derivedTarget);
+
+    // Sync Excess Cash - MOVED TO TOP LEVEL
+    useEffect(() => {
+        if (showAdvice) {
+            if (derivedExcess !== profile.excessCash) {
+                setProfileBase({ excessCash: derivedExcess });
+            }
+        }
+    }, [showAdvice, derivedExcess, profile.excessCash, setProfileBase]);
+
     const titleText = mode === "starter" ? "Safety Net 🕸️" : "Fortress of Solitude 🏰";
 
     const descriptionText = mode === "starter"
@@ -128,11 +142,7 @@ export function EmergencyFundStep({ mode = "starter" }: EmergencyFundStepProps) 
         // Better to do it in a useEffect to avoid render loops, OR just when we render this advice state?
         // We'll trust the store update in the 'finishStep' logic? No, finishStep only saved the Amount.
         // We need to save the EXCESS now.
-        useEffect(() => {
-            if (excess !== profile.excessCash) {
-                setProfileBase({ excessCash: excess });
-            }
-        }, [excess, profile.excessCash, setProfileBase]);
+
 
         // Calculate cap: Don't allocate more than the shortage itself (1 month payoff)
         // or the remaining budget, whichever is smaller.
