@@ -17,7 +17,7 @@ export default function FAQPage() {
                         Is this financial advice?
                     </h2>
                     <p className="text-muted-foreground">
-                        <strong>No.</strong> This is an educational tool based on the <Link href="https://imgur.com/lSoyGJE" target="_blank" className="text-primary underline">flowchart by u/happyasianpanda</Link> from r/personalfinance.
+                        <strong>No.</strong> This is an educational tool based on the <Link href="https://www.reddit.com/r/financialindependence/comments/16xymii/fire_flow_chart_version_43/" target="_blank" className="text-primary underline">flowchart by u/happyasianpanda</Link> from r/personalfinance.
                         It visualizes general principles. We do not know your specific tax situation, dependents, or local laws.
                         Consult a CPA or fiduciary for personalized advice.
                     </p>
