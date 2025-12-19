@@ -37,7 +37,7 @@ export function BudgetStep() {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         const val = parseFloat(expenses.replace(/,/g, ""));
-        if (val > 0) {
+        if (val >= 0) {
             setProfileBase({ monthlyExpenses: val });
             setMode("advice");
         }

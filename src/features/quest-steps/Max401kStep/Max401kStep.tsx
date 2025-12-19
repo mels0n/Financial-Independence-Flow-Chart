@@ -11,21 +11,30 @@ export function Max401kStep() {
 
     // State
     const [alreadyContributed, setAlreadyContributed] = useState(0);
+    const [userHasPlan, setUserHasPlan] = useState(true);
     const [spouseHasPlan, setSpouseHasPlan] = useState(true); // Default to true if married
 
     const baseLimit = selectedYear === '2026' ? 23500 : 23000;
 
     // Calculate Total Limit
-    let limit = baseLimit;
-    let limitDescription = "Individual Limit";
+    let limit = 0;
+    let limitDescription = "No 401k Access";
 
     if (profile.filingStatus === 'married_joint') {
-        if (spouseHasPlan) {
+        if (userHasPlan && spouseHasPlan) {
             limit = baseLimit * 2;
             limitDescription = "Combined Limit (Both Working)";
-        } else {
+        } else if (userHasPlan) {
             limit = baseLimit;
             limitDescription = "Your Limit Only (Spouse has no plan)";
+        } else if (spouseHasPlan) {
+            limit = baseLimit;
+            limitDescription = "Spouse Limit Only (You have no plan)";
+        }
+    } else {
+        if (userHasPlan) {
+            limit = baseLimit;
+            limitDescription = "Individual Limit";
         }
     }
 
@@ -45,7 +54,7 @@ export function Max401kStep() {
     const showCashFlowShifting = !isMaxed && excessCash > 10000 && recommended < monthlyToMax;
 
     const handleNext = () => {
-        if (!isMaxed && recommended > 0) {
+        if (!isMaxed && recommended > 0 && limit > 0) {
             setAllocation('max-401k', recommended);
             useFinancialStore.getState().addActionItem({
                 id: 'max-401k',
@@ -77,16 +86,45 @@ export function Max401kStep() {
                         </div>
 
                         {profile.filingStatus === 'married_joint' && (
+                            <div className="mt-4 pt-4 border-t border-blue-200 dark:border-blue-800 flex flex-col gap-3">
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={userHasPlan}
+                                        onChange={e => setUserHasPlan(e.target.checked)}
+                                        id="user-plan"
+                                        className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                    />
+                                    <label htmlFor="user-plan" className="text-sm text-foreground select-none cursor-pointer">
+                                        I have a 401k/403b at work
+                                    </label>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={spouseHasPlan}
+                                        onChange={e => setSpouseHasPlan(e.target.checked)}
+                                        id="spouse-plan"
+                                        className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                    />
+                                    <label htmlFor="spouse-plan" className="text-sm text-foreground select-none cursor-pointer">
+                                        My spouse has a 401k/403b at work
+                                    </label>
+                                </div>
+                            </div>
+                        )}
+
+                        {profile.filingStatus !== 'married_joint' && (
                             <div className="mt-4 pt-4 border-t border-blue-200 dark:border-blue-800 flex items-center gap-2">
                                 <input
                                     type="checkbox"
-                                    checked={spouseHasPlan}
-                                    onChange={e => setSpouseHasPlan(e.target.checked)}
-                                    id="spouse-plan"
+                                    checked={userHasPlan}
+                                    onChange={e => setUserHasPlan(e.target.checked)}
+                                    id="user-plan"
                                     className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
                                 />
-                                <label htmlFor="spouse-plan" className="text-sm text-foreground select-none cursor-pointer">
-                                    My spouse also has a 401k/403b at work
+                                <label htmlFor="user-plan" className="text-sm text-foreground select-none cursor-pointer">
+                                    I have a 401k/403b at work
                                 </label>
                             </div>
                         )}
