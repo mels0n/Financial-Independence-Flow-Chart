@@ -39,7 +39,7 @@ export function DebtStep() {
         return (
             <ConversationalCard
                 title="The Toxic Stuff 🧪"
-                description="Do you have any debts with an interest rate higher than 7%? (Credit cards, some auto loans, etc.)"
+                description="Do you have any other debt unaccounted for with an interest rate higher than 7%? (Credit cards, some auto loans, etc.)"
             >
                 <div className="grid grid-cols-2 gap-4">
                     <button onClick={() => handleAnswer(true)} className="p-6 bg-card border-2 border-border rounded-2xl hover:border-red-400 hover:bg-red-500/10 transition-all text-xl font-bold text-foreground">Yes</button>
@@ -112,6 +112,7 @@ export function DebtStep() {
                     onClick={() => {
                         useFinancialStore.getState().addActionItem({
                             id: 'debt-avalanche',
+                            stepId: 'debt-payoff',
                             label: `Execute Debt Avalanche: Pay $${remainingBudget.toLocaleString()}/mo to highest interest loan`
                         });
                         handleAllocate();

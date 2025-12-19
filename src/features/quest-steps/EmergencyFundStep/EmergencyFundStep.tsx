@@ -3,7 +3,11 @@
 import { useState, useEffect } from "react";
 import { useFinancialStore } from "@/entities/financial/model/financialStore";
 import { ConversationalCard } from "@/shared/ui/ConversationalCard/ConversationalCard";
+<<<<<<< HEAD
 import { ArrowRight, ShieldCheck, AlertTriangle, Battery, BatteryFull, CheckCircle2 } from "lucide-react";
+=======
+import { ArrowRight, ShieldCheck, AlertTriangle, Battery, BatteryFull, Building } from "lucide-react";
+>>>>>>> b34d9cbe6fa0a02a24f2ef6b5d8c9bc75493be05
 import { cn } from "@/shared/lib/utils";
 import { JargonTerm } from "@/shared/ui/JargonTerm/JargonTerm";
 
@@ -35,6 +39,7 @@ export function EmergencyFundStep({ mode = "starter" }: EmergencyFundStepProps) 
 
     const [isStable, setIsStable] = useState(true);
     const [showAdvice, setShowAdvice] = useState(false);
+    const [isHysa, setIsHysa] = useState<boolean | null>(null);
 
     // For now, simple input.
     const [isHysaLocal, setIsHysaLocal] = useState(profile.isHysa);
@@ -75,7 +80,7 @@ export function EmergencyFundStep({ mode = "starter" }: EmergencyFundStepProps) 
     const titleText = mode === "starter" ? "Safety Net 🕸️" : "Fortress of Solitude 🏰";
 
     const descriptionText = mode === "starter"
-        ? `Before we invest, let's make sure you won't crash. Do you have at least 1 month of expenses ($${starterTarget.toLocaleString()}) in cash?`
+        ? `Before we invest, let's make sure you won't crash. Do you have at least 1 month of expenses ($${starterTarget.toLocaleString()}) in CASH savings?`
         : `You previously noted $${profile.emergencyFundAmount.toLocaleString()} saved. To reach financial peace, we need 3-6 months of expenses. What is your TOTAL emergency savings now?`;
 
     const handleSubmitAmount = (e: React.FormEvent) => {
@@ -126,7 +131,7 @@ export function EmergencyFundStep({ mode = "starter" }: EmergencyFundStepProps) 
         return (
             <ConversationalCard
                 title="Risk Assessment 🎲"
-                description="How stable is your income? (e.g., tenured job vs. freelancer/commission)"
+                description="How stable is your household income? (e.g., tenured job vs. freelancer/commission)"
             >
                 <div className="grid grid-cols-2 gap-4">
                     <button onClick={() => handleStability(true)} className="p-6 bg-card border-2 border-border rounded-2xl hover:border-emerald-500 hover:bg-emerald-500/10 transition-all text-left">
@@ -167,13 +172,25 @@ export function EmergencyFundStep({ mode = "starter" }: EmergencyFundStepProps) 
         const monthsToGoal = allocationAmount > 0 ? Math.ceil(shortage / allocationAmount) : 0;
 
         const handleAllocate = () => {
+            // Priority: HYSA Check
+            if (isHysa === false) { // Explicitly NO
+                useFinancialStore.getState().addActionItem({
+                    id: 'open-hysa',
+                    stepId: currentStepId,
+                    label: 'Open High Yield Savings Account (HYSA)'
+                });
+            }
+
             if (allocationAmount > 0) {
                 useFinancialStore.getState().setAllocation(currentStepId, allocationAmount);
+
+                const durationText = monthsToGoal > 0 ? ` for ${monthsToGoal} months` : '';
 
                 // Add Action Item to actually do it
                 useFinancialStore.getState().addActionItem({
                     id: `emergency-fund-transfer-${mode}`, // Unique ID per mode
-                    label: `Set up auto-transfer of $${allocationAmount.toLocaleString()}/mo to Savings (${mode === 'starter' ? 'Starter' : 'Full'})`
+                    stepId: currentStepId,
+                    label: `Set up auto-transfer of $${allocationAmount.toLocaleString()}/mo to Savings${durationText} (${mode === 'starter' ? 'Starter' : 'Full'})`
                 });
             }
             nextStep();
@@ -181,9 +198,10 @@ export function EmergencyFundStep({ mode = "starter" }: EmergencyFundStepProps) 
 
         const handleSkip = () => {
             // Even if skipped, suggest opening a HYSA if they don't have one
-            if (!isFunded) {
+            if (isHysa === false) {
                 useFinancialStore.getState().addActionItem({
                     id: 'open-hysa',
+                    stepId: currentStepId,
                     label: 'Open High Yield Savings Account (HYSA)'
                 });
             }
@@ -210,12 +228,18 @@ export function EmergencyFundStep({ mode = "starter" }: EmergencyFundStepProps) 
         } else {
             // Underfunded
             title = mode === "starter" ? "Danger Zone" : "Keep Building";
+<<<<<<< HEAD
             if (mode === 'starter') {
                 description = `You are short by $${shortage.toLocaleString()}. Before getting any employer match or paying debt, you MUST save this cash.`;
             } else {
                 // Dynamic description based on slider
                 description = `Based on your risk profile, we recommend ${isStable ? '3' : '6'} months, but you have selected a target of ${sliderMonths} months ($${finalTarget.toLocaleString()}). You are short $${shortage.toLocaleString()}.`;
             }
+=======
+            description = mode === "starter"
+                ? `You are short by $${shortage.toLocaleString()}. Before getting any employer match or paying debt, you MUST save this cash.`
+                : `Based on your risk profile, you need ${isStable ? '3' : '6'} months ($${finalTarget.toLocaleString()}). You are short $${shortage.toLocaleString()}.`;
+>>>>>>> b34d9cbe6fa0a02a24f2ef6b5d8c9bc75493be05
             icon = <AlertTriangle className="w-12 h-12 text-orange-500" />;
         }
 
@@ -245,6 +269,7 @@ export function EmergencyFundStep({ mode = "starter" }: EmergencyFundStepProps) 
                         </div>
                     </div>
 
+<<<<<<< HEAD
                     {/* SLIDER UI (Full Mode Only) */}
                     {mode === 'full' && (
                         <div className="p-4 bg-secondary/30 border border-border rounded-xl space-y-3">
@@ -272,6 +297,43 @@ export function EmergencyFundStep({ mode = "starter" }: EmergencyFundStepProps) 
                             </p>
                         </div>
                     )}
+=======
+                    {/* HYSA Check */}
+                    <div className="p-4 bg-secondary/30 border border-border rounded-xl">
+                        <div className="flex items-center justify-between mb-2">
+                            <label className="text-sm font-medium flex items-center gap-2">
+                                <Building className="w-4 h-4 text-primary" />
+                                Is this cash in a High Yield Savings Account (HYSA)?
+                            </label>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setIsHysa(true)}
+                                    className={cn(
+                                        "px-3 py-1 text-xs font-bold rounded-lg transition-all",
+                                        isHysa === true ? "bg-emerald-500 text-white" : "bg-secondary hover:bg-secondary/80"
+                                    )}
+                                >
+                                    Yes
+                                </button>
+                                <button
+                                    onClick={() => setIsHysa(false)}
+                                    className={cn(
+                                        "px-3 py-1 text-xs font-bold rounded-lg transition-all",
+                                        isHysa === false ? "bg-primary text-white" : "bg-secondary hover:bg-secondary/80"
+                                    )}
+                                >
+                                    No
+                                </button>
+                            </div>
+                        </div>
+                        {isHysa === false && (
+                            <div className="text-xs text-primary mt-1 p-2 bg-primary/10 rounded-lg">
+                                Action Item will be added: You need to open a HYSA to earn 4-5% interest.
+                            </div>
+                        )}
+                    </div>
+
+>>>>>>> b34d9cbe6fa0a02a24f2ef6b5d8c9bc75493be05
 
                     {isFunded && excess > 0 && (
                         <div className="p-4 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-100 dark:border-emerald-800 rounded-xl">
@@ -317,7 +379,7 @@ export function EmergencyFundStep({ mode = "starter" }: EmergencyFundStepProps) 
                                 onClick={handleAllocate}
                                 className="w-full p-4 bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 transition-all font-medium flex items-center justify-center gap-2"
                             >
-                                Allocate ${allocationAmount.toLocaleString()}/mo to this <ArrowRight className="w-5 h-5" />
+                                Allocate ${allocationAmount.toLocaleString()}/mo {monthsToGoal > 0 ? `(for ${monthsToGoal} mo)` : ''} <ArrowRight className="w-5 h-5" />
                             </button>
                         ) : (
                             <button

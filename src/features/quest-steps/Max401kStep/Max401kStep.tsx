@@ -3,7 +3,7 @@
 import { useFinancialStore } from "@/entities/financial/model/financialStore";
 import { useState } from "react";
 import { ConversationalCard } from "@/shared/ui/ConversationalCard/ConversationalCard";
-import { ArrowRight, BarChart3, Building } from "lucide-react";
+import { ArrowRight, BarChart3, Building, PiggyBank } from "lucide-react";
 
 export function Max401kStep() {
     const { nextStep, selectedYear, getRemainingBudget, profile, setAllocation } = useFinancialStore();
@@ -11,30 +11,21 @@ export function Max401kStep() {
 
     // State
     const [alreadyContributed, setAlreadyContributed] = useState(0);
-    const [userHasPlan, setUserHasPlan] = useState(true);
     const [spouseHasPlan, setSpouseHasPlan] = useState(true); // Default to true if married
 
     const baseLimit = selectedYear === '2026' ? 23500 : 23000;
 
     // Calculate Total Limit
-    let limit = 0;
-    let limitDescription = "No 401k Access";
+    let limit = baseLimit;
+    let limitDescription = "Individual Limit";
 
     if (profile.filingStatus === 'married_joint') {
-        if (userHasPlan && spouseHasPlan) {
+        if (spouseHasPlan) {
             limit = baseLimit * 2;
             limitDescription = "Combined Limit (Both Working)";
-        } else if (userHasPlan) {
+        } else {
             limit = baseLimit;
             limitDescription = "Your Limit Only (Spouse has no plan)";
-        } else if (spouseHasPlan) {
-            limit = baseLimit;
-            limitDescription = "Spouse Limit Only (You have no plan)";
-        }
-    } else {
-        if (userHasPlan) {
-            limit = baseLimit;
-            limitDescription = "Individual Limit";
         }
     }
 
@@ -47,6 +38,10 @@ export function Max401kStep() {
     const isMaxed = remainingToMax <= 0;
     const isOverContributed = remainingToMax < 0;
 
+    // Tax Savings Calc (Est 24% bracket default for high income targeting 401k max)
+    // 24% federal
+    const predictedTaxSavings = Math.round(recommended * 0.24);
+
     // Cash Flow Shifting Logic
     const excessCash = profile.excessCash || 0;
     // Suggest shifting if they have significant cash (e.g. > $10k) but their monthly budget (recommended) won't max it out
@@ -54,11 +49,12 @@ export function Max401kStep() {
     const showCashFlowShifting = !isMaxed && excessCash > 10000 && recommended < monthlyToMax;
 
     const handleNext = () => {
-        if (!isMaxed && recommended > 0 && limit > 0) {
+        if (!isMaxed && recommended > 0) {
             setAllocation('max-401k', recommended);
             useFinancialStore.getState().addActionItem({
                 id: 'max-401k',
-                label: `Increase 401k contributions by $${recommended.toLocaleString()}/mo`
+                stepId: 'max-401k',
+                label: `Increase payroll 401k contributions by $${recommended.toLocaleString()}/mo`
             });
         }
         nextStep();
@@ -86,45 +82,16 @@ export function Max401kStep() {
                         </div>
 
                         {profile.filingStatus === 'married_joint' && (
-                            <div className="mt-4 pt-4 border-t border-blue-200 dark:border-blue-800 flex flex-col gap-3">
-                                <div className="flex items-center gap-2">
-                                    <input
-                                        type="checkbox"
-                                        checked={userHasPlan}
-                                        onChange={e => setUserHasPlan(e.target.checked)}
-                                        id="user-plan"
-                                        className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
-                                    />
-                                    <label htmlFor="user-plan" className="text-sm text-foreground select-none cursor-pointer">
-                                        I have a 401k/403b at work
-                                    </label>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <input
-                                        type="checkbox"
-                                        checked={spouseHasPlan}
-                                        onChange={e => setSpouseHasPlan(e.target.checked)}
-                                        id="spouse-plan"
-                                        className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
-                                    />
-                                    <label htmlFor="spouse-plan" className="text-sm text-foreground select-none cursor-pointer">
-                                        My spouse has a 401k/403b at work
-                                    </label>
-                                </div>
-                            </div>
-                        )}
-
-                        {profile.filingStatus !== 'married_joint' && (
                             <div className="mt-4 pt-4 border-t border-blue-200 dark:border-blue-800 flex items-center gap-2">
                                 <input
                                     type="checkbox"
-                                    checked={userHasPlan}
-                                    onChange={e => setUserHasPlan(e.target.checked)}
-                                    id="user-plan"
+                                    checked={spouseHasPlan}
+                                    onChange={e => setSpouseHasPlan(e.target.checked)}
+                                    id="spouse-plan"
                                     className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
                                 />
-                                <label htmlFor="user-plan" className="text-sm text-foreground select-none cursor-pointer">
-                                    I have a 401k/403b at work
+                                <label htmlFor="spouse-plan" className="text-sm text-foreground select-none cursor-pointer">
+                                    My spouse also has a 401k/403b at work
                                 </label>
                             </div>
                         )}
@@ -168,9 +135,27 @@ export function Max401kStep() {
                     </div>
                 </div>
 
+                {!isMaxed && recommended > 0 && (
+                    <div className="p-4 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900 rounded-xl">
+                        <div className="flex gap-2 items-center mb-2">
+                            <PiggyBank className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                            <span className="font-bold text-emerald-800 dark:text-emerald-300">Potential Tax Savings</span>
+                        </div>
+                        <p className="text-sm text-emerald-700 dark:text-emerald-400">
+                            Contributing <strong>${recommended.toLocaleString()}/mo</strong> reduces your taxable income.
+                            <br />
+                            Estimated Tax Savings: <strong>~${predictedTaxSavings.toLocaleString()}/mo</strong> (at ~24% Fed bracket).
+                        </p>
+                    </div>
+                )}
+
                 <div className="flex items-center justify-between p-4 border border-border rounded-xl bg-card">
                     <span className="text-sm font-medium">Remaining Budget</span>
                     <span className="font-bold font-mono text-emerald-500">${remainingBudget.toLocaleString()}</span>
+                </div>
+
+                <div className="text-sm text-muted-foreground text-center">
+                    Note: 401k contributions must be made via <strong>Payroll Deduction</strong>. You cannot transfer cash directly.
                 </div>
 
                 <button

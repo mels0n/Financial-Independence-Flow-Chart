@@ -3,7 +3,7 @@
 import { useFinancialStore } from "@/entities/financial/model/financialStore";
 import { cn } from "@/shared/lib/utils";
 import { useState, useEffect } from "react";
-import { CheckCircle2, Wallet, Trophy, ClipboardList, CheckSquare, Square } from "lucide-react";
+import { CheckCircle2, Wallet, Trophy, ClipboardList, CheckSquare, Square, BookOpen } from "lucide-react";
 
 export function QuestBar() {
     const { profile, getRemainingBudget, currentStep, actionItems, toggleActionItem } = useFinancialStore();
@@ -132,6 +132,15 @@ export function QuestBar() {
                         );
                     })}
                 </div>
+            </div>
+
+            <div className="mt-auto pt-6 border-t border-border">
+                <a href="/docs" className="flex items-center gap-3 p-3 rounded-xl transition-all opacity-70 hover:opacity-100 hover:bg-primary/10 hover:text-primary group">
+                    <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 border-2 border-transparent group-hover:border-primary/20">
+                        <BookOpen className="w-4 h-4" />
+                    </div>
+                    <span className="text-sm font-medium">Documentation</span>
+                </a>
             </div>
 
 
