@@ -24,8 +24,14 @@ export function HsaStep() {
 
     // Date Logic
     const today = new Date();
+    const currentYear = today.getFullYear();
+    const targetYear = parseInt(selectedYear);
     const currentMonth = today.getMonth(); // 0 = Jan, 11 = Dec
-    const monthsRemaining = Math.max(1, 12 - currentMonth);
+
+    // If we are planning for a future year, we have 12 months.
+    // If we are planning for the current year, we have remaining months.
+    const isFutureYear = targetYear > currentYear;
+    const monthsRemaining = isFutureYear ? 12 : Math.max(1, 12 - currentMonth);
 
     const annualLimit = coverageType === 'self' ? limitSelf : limitFamily;
     const remainingToMax = Math.max(0, annualLimit - alreadyContributed);
@@ -51,6 +57,7 @@ export function HsaStep() {
         setAllocation('hsa', recommended);
         useFinancialStore.getState().addActionItem({
             id: 'maximize-hsa',
+            stepId: 'hsa',
             label: `Maximize HSA: Contribute $${recommended.toLocaleString()}/mo`
         });
         setStepPhase('strategy');
@@ -121,13 +128,16 @@ export function HsaStep() {
         const excessCash = profile.excessCash || 0;
         const canLumpSum = !isMaxed && excessCash >= remainingToMax;
 
+        const description = isMaxed
+            ? `You have already hit the ${selectedYear} limit. Great job.`
+            : isFutureYear
+                ? `Planning for ${selectedYear}. You have the full 12 months.`
+                : `It is month ${currentMonth + 1} of ${currentYear}. To hit the max, you need to sprint.`;
+
         return (
             <ConversationalCard
                 title={isMaxed ? "You nailed it! 🎉" : "Max it out."}
-                description={isMaxed
-                    ? `You have already hit the ${selectedYear} limit. Great job.`
-                    : `It is month ${currentMonth + 1} of ${today.getFullYear()}. To hit the max, you need to sprint.`
-                }
+                description={description}
             >
                 <div className="space-y-6">
                     <div className="flex gap-4 p-4 bg-secondary rounded-xl items-center justify-between">
@@ -225,6 +235,7 @@ export function HsaStep() {
                                             setProfileBase({ excessCash: excessCash - remainingToMax });
                                             useFinancialStore.getState().addActionItem({
                                                 id: 'hsa-lump-sum',
+                                                stepId: 'hsa',
                                                 label: `Transfer $${remainingToMax.toLocaleString()} from Savings to HSA`
                                             });
                                             setStepPhase("strategy");
@@ -307,6 +318,7 @@ export function HsaStep() {
                         if (typeof useFinancialStore.getState().addActionItem === 'function') {
                             useFinancialStore.getState().addActionItem({
                                 id: 'hsa-shoebox',
+                                stepId: 'hsa',
                                 label: 'Set up Google Drive folder for Medical Receipts'
                             });
                         }

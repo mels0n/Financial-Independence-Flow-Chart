@@ -37,6 +37,7 @@ interface FinancialProfile {
 
 export interface ActionItem {
     id: string;
+    stepId?: string; // Optional for backward compatibility/manual items, but recommended
     label: string;
     completed: boolean;
 }
@@ -132,7 +133,25 @@ export const useFinancialStore = create<FinancialState>()(
                 const newHistory = [...state.history];
                 const prev = newHistory.pop();
                 if (prev) {
-                    return { currentStep: prev, history: newHistory };
+                    // CLEAR STATE for the step we are going back TO.
+                    // This ensures that if the user changes their mind, we don't have stale allocations/actions
+                    // from their previous pass through this step.
+                    // We also remove actions from the step we are LEAVING (currentStep) just in case?
+                    // No, usually we want to clear the *source* of the data. 
+                    // If I go back to Emergency Fund, I want to clear the "Emergency Fund Allocation"
+                    // and "Emergency Fund Action Item" so I can re-enter them.
+
+                    const newAllocations = { ...state.allocations };
+                    delete newAllocations[prev];
+
+                    const newActionItems = state.actionItems.filter(item => item.stepId !== prev);
+
+                    return {
+                        currentStep: prev,
+                        history: newHistory,
+                        allocations: newAllocations,
+                        actionItems: newActionItems
+                    };
                 }
                 return state;
             }),
