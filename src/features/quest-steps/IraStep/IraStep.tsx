@@ -111,6 +111,16 @@ export function IraStep() {
                     </div>
                 )}
 
+                <div className="p-4 bg-orange-50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-800 rounded-xl">
+                    <h4 className="font-bold text-orange-900 dark:text-orange-100 flex items-center gap-2">
+                        <TrendingUp className="w-5 h-5" />
+                        One Catch: Earned Income
+                    </h4>
+                    <p className="text-sm text-orange-800 dark:text-orange-200 mt-2">
+                        You can't contribute more than you earned from working. This is called <JargonTerm term="Earned Income" definition="Money you make from a job or your own business. It does NOT include interest, dividends, or rental income." />. If you earned $3,000 this year, your IRA limit is $3,000, not ${limit.toLocaleString()}.
+                    </p>
+                </div>
+
                 <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 rounded-xl">
                     <h4 className="font-bold text-emerald-900 dark:text-emerald-100 flex items-center gap-2">
                         <TrendingUp className="w-5 h-5" />
