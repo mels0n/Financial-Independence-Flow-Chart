@@ -28,6 +28,15 @@ export default function Home() {
                 </div>
 
                 <QuestFlow />
+
+                <div className="w-full max-w-2xl mx-auto my-8 p-4 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-900/50 rounded-xl text-center">
+                    <p className="text-xs text-amber-800 dark:text-amber-200/80">
+                        <strong>Disclaimer:</strong> This application is for educational purposes only. It is not financial, legal, or tax advice.
+                        The figures (tax brackets, limits) are estimates based on available data.
+                        Consult a CPA or fiduciary for personalized advice.
+                    </p>
+                </div>
+
                 <Footer />
             </div>
             <ActionBoard />

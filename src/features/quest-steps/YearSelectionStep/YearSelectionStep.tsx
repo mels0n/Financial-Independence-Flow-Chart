@@ -16,7 +16,7 @@ export function YearSelectionStep() {
     return (
         <ConversationalCard
             title="Welcome to Financial Quest."
-            description="To give you the most accurate advice, which tax year are we planning for?"
+            description="To give you the most accurate information, which tax year are we planning for?"
         >
             <div className="grid grid-cols-2 gap-4 mt-6">
                 <button

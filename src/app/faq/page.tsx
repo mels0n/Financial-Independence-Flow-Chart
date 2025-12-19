@@ -40,18 +40,29 @@ export default function FAQPage() {
                         Where is my data stored?
                     </h2>
                     <p className="text-muted-foreground">
-                        <strong>Nowhere.</strong> Everything is stored locally in your browser/memory state while you run the session.
-                        If you refresh, it resets (unless we add local storage features later). We do not send your data to any server.
+                        <strong>Nowhere but here.</strong> Everything is stored temporarily in your browser's memory state while you run the session.
+                        If you refresh, it resets. We do not send your financial data to any server, database, or third party.
                     </p>
                 </div>
 
                 <div className="p-6 bg-card border border-border rounded-2xl">
                     <h2 className="text-xl font-bold mb-2 flex items-center gap-2">
                         <HelpCircle className="w-5 h-5 text-muted-foreground" />
-                        What is "FSD"?
+                        Why follow this order?
                     </h2>
                     <p className="text-muted-foreground">
-                        Feature-Sliced Design. It's the architectural pattern used to build this codebase, ensuring it remains scalable and modular.
+                        This "Order of Operations" is designed to mathematically optimize your wealth building.
+                        It prioritizes "free money" (employer match) and high-interest debt payoff &gt; tax-advantaged growth &gt; standard accounts.
+                    </p>
+                </div>
+
+                <div className="p-6 bg-card border border-border rounded-2xl">
+                    <h2 className="text-xl font-bold mb-2 flex items-center gap-2">
+                        <HelpCircle className="w-5 h-5 text-muted-foreground" />
+                        Is this updated for 2025/2026?
+                    </h2>
+                    <p className="text-muted-foreground">
+                        <strong>Yes.</strong> We use the official IRS limits for 2025 where available, and projections for 2026 based on current inflation data.
                     </p>
                 </div>
             </div>
