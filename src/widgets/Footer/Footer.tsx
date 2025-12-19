@@ -9,7 +9,7 @@ export function Footer() {
                 <Link href="/faq" className="hover:text-primary transition-colors">FAQ</Link>
             </div>
             <p className="text-muted-foreground/60">
-                Financial Quest &copy; {new Date().getFullYear()}
+                &copy; {new Date().getFullYear()} <Link href="https://chris.melson.us/" target="_blank" className="hover:text-primary transition-colors">Christopher Melson</Link>. All rights reserved.
             </p>
         </footer>
     );

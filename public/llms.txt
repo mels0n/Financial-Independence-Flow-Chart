@@ -1,0 +1,19 @@
+# Project Context
+Project: Financial Quest
+Description: A guided path to financial calm using Flowchart methodology.
+Domain: https://financial-independence.melson.us
+
+# Core Concepts
+- Flowchart: Based on r/personalfinance Prime Directive.
+- Tax Years: Defaults to upcoming year limits.
+- Privacy: Local-only storage. No server-side persistence.
+
+# Architecture
+- Stack: Next.js 14, React, Tailwind CSS.
+- Pattern: Feature-Sliced Design (FSD).
+- Rendering: Client-side heavy (interactive flowchart).
+
+# Content
+- /: Main flowchart application.
+- /faq: Frequently Asked Questions about methodology and data.
+- /howto: Guide on how to use the interactive tools.
