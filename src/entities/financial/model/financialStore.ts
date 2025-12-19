@@ -33,6 +33,8 @@ interface FinancialProfile {
     hasHighInterestDebt: boolean;
     hasHsaEligiblePlan: boolean;
     excessCash: number;
+    isHysa: boolean;
+    emergencyFundMonths: number;
 }
 
 export interface ActionItem {
@@ -85,6 +87,8 @@ export const useFinancialStore = create<FinancialState>()(
                 hasHighInterestDebt: false,
                 hasHsaEligiblePlan: false,
                 excessCash: 0,
+                isHysa: false,
+                emergencyFundMonths: 3,
             },
             allocations: {},
             actionItems: [],

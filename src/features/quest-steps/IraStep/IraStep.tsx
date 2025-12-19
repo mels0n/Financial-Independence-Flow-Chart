@@ -64,6 +64,33 @@ export function IraStep() {
                     </div>
                 )}
 
+                {/* Spousal IRA Info (MFJ Only) */}
+                {profile.filingStatus === 'married_joint' && (
+                    <div className="p-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-xl">
+                        <h4 className="font-bold text-purple-900 dark:text-purple-100 flex items-center gap-2">
+                            💍 Spousal IRA Opportunity
+                        </h4>
+                        <div className="text-sm text-purple-800 dark:text-purple-200 mt-2 space-y-2">
+                            <p>
+                                Since you are married filing jointly, <strong>both spouses</strong> can contribute to their own separate IRA (Total ${limit.toLocaleString()}), even if one spouse does not work!
+                            </p>
+                            <p>
+                                As long as the <strong>household</strong> earned income covers the total contributions, the non-working spouse is eligible.
+                            </p>
+                            <div className="text-xs pt-1">
+                                <a
+                                    href="https://www.irs.gov/publications/p590a#en_US_2023_publink1000230412"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="underline hover:text-purple-950 dark:hover:text-purple-300"
+                                >
+                                    Source: IRS Publication 590-A
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Already Contributed Input */}
                 <div className="p-4 border border-border rounded-xl flex items-center justify-between bg-card">
                     <div>
@@ -117,7 +144,11 @@ export function IraStep() {
                         One Catch: Earned Income
                     </h4>
                     <p className="text-sm text-orange-800 dark:text-orange-200 mt-2">
-                        You can't contribute more than you earned from working. This is called <JargonTerm term="Earned Income" definition="Money you make from a job or your own business. It does NOT include interest, dividends, or rental income." />. If you earned $3,000 this year, your IRA limit is $3,000, not ${limit.toLocaleString()}.
+                        You can't contribute more than you earned from working. This is called <JargonTerm term="Earned Income" definition="Money you make from a job or your own business. It does NOT include interest, dividends, or rental income." />.
+                        {profile.filingStatus === 'married_joint'
+                            ? " For couples filing jointly, this applies to your COMBINED household earned income."
+                            : ` If you earned $3,000 this year, your IRA limit is $3,000, not ${limit.toLocaleString()}.`
+                        }
                     </p>
                 </div>
 

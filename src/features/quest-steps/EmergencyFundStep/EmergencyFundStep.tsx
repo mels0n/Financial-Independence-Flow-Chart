@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useFinancialStore } from "@/entities/financial/model/financialStore";
 import { ConversationalCard } from "@/shared/ui/ConversationalCard/ConversationalCard";
-import { ArrowRight, ShieldCheck, AlertTriangle, Battery, BatteryFull } from "lucide-react";
+import { ArrowRight, ShieldCheck, AlertTriangle, Battery, BatteryFull, CheckCircle2 } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { JargonTerm } from "@/shared/ui/JargonTerm/JargonTerm";
 
@@ -36,13 +36,19 @@ export function EmergencyFundStep({ mode = "starter" }: EmergencyFundStepProps) 
     const [isStable, setIsStable] = useState(true);
     const [showAdvice, setShowAdvice] = useState(false);
 
-    // Initial Load: If they already have an amount in profile, populate it?
-    // Maybe better to let them confirm it again or persist it. 
     // For now, simple input.
+    const [isHysaLocal, setIsHysaLocal] = useState(profile.isHysa);
+
+    // Initial load sync
+    useEffect(() => {
+        setIsHysaLocal(profile.isHysa);
+    }, [profile.isHysa]);
 
     // Dynamic Target Logic
     // Starter = 1 month always
-    // Full = 3 months (Stable) OR 6 months (Unstable)
+    // Full = Sliding Scale (Default 3 or 6)
+    const [sliderMonths, setSliderMonths] = useState(3);
+
     const starterTarget = profile.monthlyExpenses * 1;
     const fullTarget3 = profile.monthlyExpenses * 3;
     const fullTarget6 = profile.monthlyExpenses * 6;
@@ -87,6 +93,13 @@ export function EmergencyFundStep({ mode = "starter" }: EmergencyFundStepProps) 
 
     const handleStability = (stable: boolean) => {
         setIsStable(stable);
+        // Default Slider based on stability
+        const defaultMonths = stable ? 3 : 6;
+        setSliderMonths(defaultMonths);
+
+        // Update store with preference
+        setProfileBase({ emergencyFundMonths: defaultMonths });
+
         // Now we can calculate target and show advice
         setStepPhase("advice");
         finishStep(stable);
@@ -95,7 +108,11 @@ export function EmergencyFundStep({ mode = "starter" }: EmergencyFundStepProps) 
     const finishStep = (stableOverride?: boolean) => {
         const val = parseFloat(currentSavings.replace(/,/g, ""));
         if (!isNaN(val)) {
-            setProfileBase({ emergencyFundAmount: val });
+            // Save Amount AND HYSA status
+            setProfileBase({
+                emergencyFundAmount: val,
+                isHysa: isHysaLocal
+            });
             setShowAdvice(true);
         }
     };
@@ -128,8 +145,12 @@ export function EmergencyFundStep({ mode = "starter" }: EmergencyFundStepProps) 
     // 2. Advice / Result
     if (showAdvice) {
         const val = parseFloat(currentSavings.replace(/,/g, ""));
-        // Recalculate target because isStable might have just changed
-        const finalTarget = mode === "starter" ? starterTarget : (isStable ? fullTarget3 : fullTarget6);
+
+        // Use sliderMonths for Full mode
+        const finalTarget = mode === "starter"
+            ? starterTarget
+            : profile.monthlyExpenses * sliderMonths;
+
         const isFunded = val >= finalTarget;
         const currentStepId = mode === "starter" ? "emergency-fund" : "emergency-fund-full";
         const remainingBudget = useFinancialStore.getState().getRemainingBudget();
@@ -137,12 +158,6 @@ export function EmergencyFundStep({ mode = "starter" }: EmergencyFundStepProps) 
         // Calculate gap
         const shortage = Math.max(0, finalTarget - val);
         const excess = Math.max(0, val - finalTarget);
-
-        // Update Excess Cash in store (useEffect or immediate?)
-        // Better to do it in a useEffect to avoid render loops, OR just when we render this advice state?
-        // We'll trust the store update in the 'finishStep' logic? No, finishStep only saved the Amount.
-        // We need to save the EXCESS now.
-
 
         // Calculate cap: Don't allocate more than the shortage itself (1 month payoff)
         // or the remaining budget, whichever is smaller.
@@ -172,6 +187,13 @@ export function EmergencyFundStep({ mode = "starter" }: EmergencyFundStepProps) 
                     label: 'Open High Yield Savings Account (HYSA)'
                 });
             }
+            // If they HAVE funds but it's NOT in a HYSA
+            if (isFunded && !isHysaLocal && mode === 'starter') {
+                useFinancialStore.getState().addActionItem({
+                    id: 'move-to-hysa',
+                    label: 'Move Emergency Fund to High Yield Savings Account (HYSA)'
+                });
+            }
             nextStep();
         };
 
@@ -188,9 +210,12 @@ export function EmergencyFundStep({ mode = "starter" }: EmergencyFundStepProps) 
         } else {
             // Underfunded
             title = mode === "starter" ? "Danger Zone" : "Keep Building";
-            description = mode === "starter"
-                ? `You are short by $${shortage.toLocaleString()}. Before getting any employer match or paying debt, you MUST save this cash.`
-                : `Based on your risk, you need ${isStable ? '3' : '6'} months ($${finalTarget.toLocaleString()}). You are short $${shortage.toLocaleString()}.`;
+            if (mode === 'starter') {
+                description = `You are short by $${shortage.toLocaleString()}. Before getting any employer match or paying debt, you MUST save this cash.`;
+            } else {
+                // Dynamic description based on slider
+                description = `Based on your risk profile, we recommend ${isStable ? '3' : '6'} months, but you have selected a target of ${sliderMonths} months ($${finalTarget.toLocaleString()}). You are short $${shortage.toLocaleString()}.`;
+            }
             icon = <AlertTriangle className="w-12 h-12 text-orange-500" />;
         }
 
@@ -208,7 +233,7 @@ export function EmergencyFundStep({ mode = "starter" }: EmergencyFundStepProps) 
                     <div className="space-y-2">
                         <div className="flex justify-between text-sm font-medium text-muted-foreground">
                             <span>Current: ${val.toLocaleString()}</span>
-                            <span>Target ({isStable && mode === 'full' ? '3 mo' : mode === 'starter' ? '1 mo' : '6 mo'}): ${finalTarget.toLocaleString()}</span>
+                            <span>Target ({mode === 'starter' ? '1 mo' : `${sliderMonths} mo`}): ${finalTarget.toLocaleString()}</span>
                         </div>
                         <div className="w-full bg-secondary rounded-full h-4 overflow-hidden">
                             <div
@@ -219,6 +244,34 @@ export function EmergencyFundStep({ mode = "starter" }: EmergencyFundStepProps) 
                             />
                         </div>
                     </div>
+
+                    {/* SLIDER UI (Full Mode Only) */}
+                    {mode === 'full' && (
+                        <div className="p-4 bg-secondary/30 border border-border rounded-xl space-y-3">
+                            <div className="flex justify-between items-center">
+                                <label className="text-sm font-bold flex items-center gap-2">
+                                    🎚️ Risk Comfort Level
+                                </label>
+                                <span className="text-xl font-bold text-primary">{sliderMonths} Months</span>
+                            </div>
+                            <input
+                                type="range"
+                                min="3"
+                                max="24"
+                                step="1"
+                                value={sliderMonths}
+                                onChange={(e) => {
+                                    const m = parseInt(e.target.value);
+                                    setSliderMonths(m);
+                                    setProfileBase({ emergencyFundMonths: m });
+                                }}
+                                className="w-full accent-primary h-2 bg-secondary rounded-lg appearance-none cursor-pointer"
+                            />
+                            <p className="text-xs text-muted-foreground">
+                                We recommend {isStable ? '3' : '6'} months, but you can adjust this up to 24 months ($ {(profile.monthlyExpenses * 24).toLocaleString()}) if you prefer extra safety.
+                            </p>
+                        </div>
+                    )}
 
                     {isFunded && excess > 0 && (
                         <div className="p-4 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-100 dark:border-emerald-800 rounded-xl">
@@ -289,21 +342,36 @@ export function EmergencyFundStep({ mode = "starter" }: EmergencyFundStepProps) 
             title={titleText}
             description={descriptionText}
         >
-            <form onSubmit={handleSubmitAmount} className="flex gap-4 items-center">
-                <div className="relative flex-1">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl text-muted-foreground font-medium">$</span>
-                    <input
-                        type="number"
-                        value={currentSavings}
-                        onChange={(e) => setCurrentSavings(e.target.value)}
-                        className="w-full pl-10 pr-4 py-4 text-2xl font-bold text-foreground bg-secondary rounded-2xl border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                        placeholder="0"
-                        autoFocus
-                    />
+            <form onSubmit={handleSubmitAmount} className="flex flex-col gap-6">
+                <div className="flex gap-4 items-center">
+                    <div className="relative flex-1">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl text-muted-foreground font-medium">$</span>
+                        <input
+                            type="number"
+                            value={currentSavings}
+                            onChange={(e) => setCurrentSavings(e.target.value)}
+                            className="w-full pl-10 pr-4 py-4 text-2xl font-bold text-foreground bg-secondary rounded-2xl border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                            placeholder="0"
+                            autoFocus
+                        />
+                    </div>
                 </div>
+
+                {mode === 'starter' && (
+                    <div className="flex items-center gap-3 p-4 bg-secondary/50 rounded-xl border border-border cursor-pointer hover:bg-secondary transition-colors" onClick={() => setIsHysaLocal(!isHysaLocal)}>
+                        <div className={cn("w-6 h-6 rounded-md border-2 flex items-center justify-center transition-colors", isHysaLocal ? "bg-emerald-500 border-emerald-500" : "border-muted-foreground")}>
+                            {isHysaLocal && <CheckCircle2 className="w-4 h-4 text-white" />}
+                        </div>
+                        <div className="flex-1">
+                            <p className="font-medium text-sm">Is this in a High Yield Savings Account (HYSA)?</p>
+                            <p className="text-xs text-muted-foreground">Earning 4-5% interest vs 0.01%</p>
+                        </div>
+                    </div>
+                )}
+
                 <button
                     type="submit"
-                    className="p-4 bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 transition-all hover:scale-105 active:scale-95"
+                    className="w-full p-4 bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 transition-all hover:scale-[1.02] active:scale-95 flex justify-center"
                 >
                     <ArrowRight className="w-8 h-8" />
                 </button>
