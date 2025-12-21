@@ -5,7 +5,11 @@ import { cn } from "@/shared/lib/utils";
 import { useState, useEffect } from "react";
 import { CheckCircle2, Wallet, Trophy, ClipboardList, CheckSquare, Square, BookOpen } from "lucide-react";
 
-export function QuestBar() {
+interface QuestBarProps {
+    className?: string;
+}
+
+export function QuestBar({ className }: QuestBarProps) {
     const { profile, getRemainingBudget, currentStep, actionItems, toggleActionItem } = useFinancialStore();
 
     const income = profile.monthlyIncome;
@@ -62,7 +66,7 @@ export function QuestBar() {
     }
 
     return (
-        <div className="hidden lg:flex flex-col w-80 h-screen sticky top-0 bg-background border-r border-border p-6 overflow-y-auto">
+        <div className={cn("hidden lg:flex flex-col w-80 h-screen sticky top-0 bg-background border-r border-border p-6 overflow-y-auto", className)}>
             <div className="mb-8">
                 <h2 className="text-xl font-bold text-foreground flex items-center gap-2 mb-4">
                     <Trophy className="w-6 h-6 text-yellow-500" />

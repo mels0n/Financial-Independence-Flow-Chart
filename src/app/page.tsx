@@ -2,6 +2,10 @@
 
 import { Footer } from "@/widgets/Footer/Footer";
 import dynamic from "next/dynamic";
+import { useState } from "react";
+import { Sheet } from "@/shared/ui/Sheet/Sheet";
+import { MobileHeader } from "@/widgets/MobileHeader/MobileHeader";
+import { useFinancialStore } from "@/entities/financial/model/financialStore";
 
 const QuestFlow = dynamic(() => import("@/widgets/QuestFlow/QuestFlow").then((mod) => mod.QuestFlow), {
     ssr: false,
@@ -17,10 +21,31 @@ const ActionBoard = dynamic(() => import("@/widgets/ActionBoard/ActionBoard").th
 });
 
 export default function Home() {
+    const [isQuestLogOpen, setIsQuestLogOpen] = useState(false);
+    const [isActionBoardOpen, setIsActionBoardOpen] = useState(false);
+    const { actionItems } = useFinancialStore();
+
+    // Calculate pending action items
+    const pendingActionItems = actionItems.filter(i => !i.completed).length;
+
     return (
-        <main className="flex min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 transition-colors duration-300">
+        <main className="flex min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 transition-colors duration-300 pt-16 lg:pt-0">
+            <MobileHeader
+                onOpenQuestLog={() => setIsQuestLogOpen(true)}
+                onOpenActionBoard={() => setIsActionBoardOpen(true)}
+                actionItemsCount={pendingActionItems}
+            />
+
+            <Sheet isOpen={isQuestLogOpen} onClose={() => setIsQuestLogOpen(false)} side="left">
+                <QuestBar className="flex w-full h-full border-none" />
+            </Sheet>
+
+            <Sheet isOpen={isActionBoardOpen} onClose={() => setIsActionBoardOpen(false)} side="right">
+                <ActionBoard className="flex w-full h-full border-none" />
+            </Sheet>
+
             <QuestBar />
-            <div className="flex-1 flex flex-col items-center justify-start pt-12 lg:pt-24 pb-12 px-4 overflow-y-auto">
+            <div className="flex-1 flex flex-col items-center justify-start pt-8 lg:pt-24 pb-12 px-4 overflow-y-auto">
                 <div className="w-full max-w-5xl items-center justify-center font-mono text-sm lg:flex mb-8 lg:mb-12">
                     <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-center bg-gradient-to-r from-indigo-500 to-indigo-600 dark:from-indigo-400 dark:to-indigo-300 bg-clip-text text-transparent drop-shadow-sm">
                         Financial Quest

@@ -5,13 +5,17 @@ import { cn } from "@/shared/lib/utils";
 import { useState, useEffect } from "react";
 import { ClipboardList, CheckSquare, Square } from "lucide-react";
 
-export function ActionBoard() {
+interface ActionBoardProps {
+    className?: string;
+}
+
+export function ActionBoard({ className }: ActionBoardProps) {
     const { actionItems, toggleActionItem } = useFinancialStore();
 
     if (actionItems.length === 0) return null;
 
     return (
-        <div className="hidden xl:flex flex-col w-80 h-screen sticky top-0 bg-background border-l border-border p-6 overflow-y-auto">
+        <div className={cn("hidden xl:flex flex-col w-80 h-screen sticky top-0 bg-background border-l border-border p-6 overflow-y-auto", className)}>
             <h3 className="text-xl font-bold text-foreground flex items-center gap-2 mb-6">
                 <ClipboardList className="w-6 h-6 text-blue-500" />
                 Action Board
