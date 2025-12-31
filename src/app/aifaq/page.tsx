@@ -17,11 +17,11 @@ const faqItems: FAQItem[] = [
     },
     {
         question: "Do I need to create an account with a password?",
-        answer: "No. Financial Quest uses a 'Privacy-First Magic Link' system. You simply enter your email, and we send you a secure, time-sensitive login link. This means there are no passwords for you to remember and no passwords for hackers to steal."
+        answer: "No. Financial Quest is completely private and runs locally in your browser session. We do not store your data on our servers. Your progress is saved to your device's temporary storage, ensuring no one (including looking over your shoulder) can access your sensitive financial data once you close the tab."
     },
     {
         question: "How is my progress saved?",
-        answer: "Your progress is automatically saved to your secure profile when you use the Magic Link. You can pick up exactly where you left off on any device by requesting a new link."
+        answer: "Your progress is saved to your browser's session storage. This means if you refresh the page, your data remains. However, for security themes, if you close the browser tab or window, your session is wiped clean."
     },
     {
         question: "What are the key financial constants used?",
