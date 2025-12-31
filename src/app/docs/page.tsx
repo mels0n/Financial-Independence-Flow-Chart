@@ -1,15 +1,18 @@
-import { FINANCIAL_CONSTANTS } from "@/shared/config/financial-constants";
+import { getFinancialConstants } from "@/shared/config/financial-constants";
+import { getAvailableTaxYears } from "@/entities/financial/model/taxYearConfig";
 import { Footer } from "@/widgets/Footer/Footer";
 import Link from "next/link";
 import { ArrowLeft, ExternalLink, ScrollText } from "lucide-react";
 
 export const metadata = {
     title: "Financial Documentation & Limits | Financial Quest",
-    description: "Official 2025/2026 contribution limits, income thresholds, and rules for IRAs, 401(k)s, and HSAs.",
+    description: "Official tax limits, contribution maximums, and standard deductions for current and projected years.",
 };
 
 export default function DocsPage() {
-    const years = ["2025", "2026"] as const;
+    const years = getAvailableTaxYears().map(y => y.year);
+    // Helper to get data for rendering
+    const getData = (y: string) => getFinancialConstants(y);
 
     return (
         <main className="min-h-screen bg-background text-foreground p-8 max-w-4xl mx-auto">
@@ -81,15 +84,15 @@ export default function DocsPage() {
                             <tbody className="divide-y divide-border">
                                 <tr>
                                     <td className="p-4 font-medium">Employee Contribution Limit</td>
-                                    {years.map(y => <td key={y} className="p-4">${FINANCIAL_CONSTANTS[y].k401.limit.toLocaleString()}</td>)}
+                                    {years.map(y => <td key={y} className="p-4">${getData(y).k401.limit.toLocaleString()}</td>)}
                                 </tr>
                                 <tr>
                                     <td className="p-4 font-medium text-muted-foreground">Catch-Up Contribution (Age 50+)</td>
-                                    {years.map(y => <td key={y} className="p-4">+${FINANCIAL_CONSTANTS[y].k401.catchUp.toLocaleString()}</td>)}
+                                    {years.map(y => <td key={y} className="p-4">+${getData(y).k401.catchUp.toLocaleString()}</td>)}
                                 </tr>
                                 <tr>
                                     <td className="p-4 font-medium text-muted-foreground">Total Limit (Employee + Employer)</td>
-                                    {years.map(y => <td key={y} className="p-4">${FINANCIAL_CONSTANTS[y].k401.totalLimit?.toLocaleString()}</td>)}
+                                    {years.map(y => <td key={y} className="p-4">${getData(y).k401.totalLimit?.toLocaleString()}</td>)}
                                 </tr>
                             </tbody>
                         </table>
@@ -107,11 +110,11 @@ export default function DocsPage() {
                             <tbody className="divide-y divide-border">
                                 <tr>
                                     <td className="p-4 font-medium">Contribution Limit</td>
-                                    {years.map(y => <td key={y} className="p-4">${FINANCIAL_CONSTANTS[y].ira.limit.toLocaleString()}</td>)}
+                                    {years.map(y => <td key={y} className="p-4">${getData(y).ira.limit.toLocaleString()}</td>)}
                                 </tr>
                                 <tr>
                                     <td className="p-4 font-medium text-muted-foreground">Catch-Up Contribution (Age 50+)</td>
-                                    {years.map(y => <td key={y} className="p-4">+${FINANCIAL_CONSTANTS[y].ira.catchUp.toLocaleString()}</td>)}
+                                    {years.map(y => <td key={y} className="p-4">+${getData(y).ira.catchUp.toLocaleString()}</td>)}
                                 </tr>
                             </tbody>
                         </table>
@@ -129,15 +132,15 @@ export default function DocsPage() {
                             <tbody className="divide-y divide-border">
                                 <tr>
                                     <td className="p-4 font-medium">Self-Only Coverage</td>
-                                    {years.map(y => <td key={y} className="p-4">${FINANCIAL_CONSTANTS[y].hsa.self.toLocaleString()}</td>)}
+                                    {years.map(y => <td key={y} className="p-4">${getData(y).hsa.self.toLocaleString()}</td>)}
                                 </tr>
                                 <tr>
                                     <td className="p-4 font-medium">Family Coverage</td>
-                                    {years.map(y => <td key={y} className="p-4">${FINANCIAL_CONSTANTS[y].hsa.family.toLocaleString()}</td>)}
+                                    {years.map(y => <td key={y} className="p-4">${getData(y).hsa.family.toLocaleString()}</td>)}
                                 </tr>
                                 <tr>
                                     <td className="p-4 font-medium text-muted-foreground">Catch-Up Contribution (Age 55+)</td>
-                                    {years.map(y => <td key={y} className="p-4">+${FINANCIAL_CONSTANTS[y].hsa.catchUp.toLocaleString()}</td>)}
+                                    {years.map(y => <td key={y} className="p-4">+${getData(y).hsa.catchUp.toLocaleString()}</td>)}
                                 </tr>
                             </tbody>
                         </table>
@@ -155,15 +158,15 @@ export default function DocsPage() {
                             <tbody className="divide-y divide-border">
                                 <tr>
                                     <td className="p-4 font-medium">Single</td>
-                                    {years.map(y => <td key={y} className="p-4">${FINANCIAL_CONSTANTS[y].standardDeduction.single.toLocaleString()}</td>)}
+                                    {years.map(y => <td key={y} className="p-4">${getData(y).standardDeduction.single.toLocaleString()}</td>)}
                                 </tr>
                                 <tr>
                                     <td className="p-4 font-medium">Married Filing Jointly</td>
-                                    {years.map(y => <td key={y} className="p-4">${FINANCIAL_CONSTANTS[y].standardDeduction.married.toLocaleString()}</td>)}
+                                    {years.map(y => <td key={y} className="p-4">${getData(y).standardDeduction.married.toLocaleString()}</td>)}
                                 </tr>
                                 <tr>
                                     <td className="p-4 font-medium">Head of Household</td>
-                                    {years.map(y => <td key={y} className="p-4">${FINANCIAL_CONSTANTS[y].standardDeduction.headOfHousehold.toLocaleString()}</td>)}
+                                    {years.map(y => <td key={y} className="p-4">${getData(y).standardDeduction.headOfHousehold.toLocaleString()}</td>)}
                                 </tr>
                             </tbody>
                         </table>

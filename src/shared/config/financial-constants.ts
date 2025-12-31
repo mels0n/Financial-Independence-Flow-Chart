@@ -67,3 +67,18 @@ export const FINANCIAL_CONSTANTS: Record<TaxYear, FinancialLimits> & { hsaIntere
         },
     },
 };
+// Helper to safely get constants, falling back to latest year for projections
+export const getFinancialConstants = (year: string): FinancialLimits => {
+    // If exact match exists, return it
+    // If exact match exists and is not the interest rate constant
+    if (year in FINANCIAL_CONSTANTS && year !== 'hsaInterestRate') {
+        const val = FINANCIAL_CONSTANTS[year as keyof typeof FINANCIAL_CONSTANTS];
+        if (typeof val === 'object') {
+            return val as FinancialLimits;
+        }
+    }
+
+    // Fallback: Return the latest known year (Projected logic)
+    // We assume 2026 is the latest for now. This could be dynamic but explicitly safe is better here.
+    return FINANCIAL_CONSTANTS["2026"];
+};

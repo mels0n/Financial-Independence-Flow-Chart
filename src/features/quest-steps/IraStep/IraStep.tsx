@@ -3,7 +3,7 @@
 
 import { useFinancialStore } from "@/entities/financial/model/financialStore";
 import { ConversationalCard } from "@/shared/ui/ConversationalCard/ConversationalCard";
-import { FINANCIAL_CONSTANTS } from "@/shared/config/financial-constants";
+import { FINANCIAL_CONSTANTS, getFinancialConstants } from "@/shared/config/financial-constants";
 import { useState } from "react";
 import { ArrowRight, PiggyBank, TrendingUp } from "lucide-react";
 import { JargonTerm } from "@/shared/ui/JargonTerm/JargonTerm";
@@ -11,7 +11,7 @@ import { cn } from "@/shared/lib/utils";
 
 export function IraStep() {
     const { selectedYear, nextStep, profile, setAllocation, getRemainingBudget, setProfileBase } = useFinancialStore();
-    const limits = FINANCIAL_CONSTANTS[selectedYear].ira;
+    const limits = getFinancialConstants(selectedYear).ira;
     const [alreadyContributed, setAlreadyContributed] = useState(0);
 
     const remainingBudget = getRemainingBudget();

@@ -17,7 +17,7 @@ The **Financial Quest Flow Chart** takes the popular "Prime Directive" flow char
   - Maxing out 401k
   - Education & Goals
   - Taxable Brokerage Accounts
-- **Year-Specific Logic**: Supports tax limits and standard deductions for **2025** and **2026** (and beyond).
+- **Automated Tax Year Logic**: Dynamically switches between "Official" (IRS-confirmed) and "Projected" limits based on the current date, ensuring longevity without manual code updates.
 - **Visual Feedback**:
   - **Quest Bar**: Tracks your overall progress through the financial stages.
   - **Action Board**: Generates a customized "to-do" list based on your inputs.
@@ -65,13 +65,19 @@ The **Financial Quest Flow Chart** takes the popular "Prime Directive" flow char
 
 4.  Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## Project Structure
+### Feature Sliced Design (FSD)
+The project strictly adheres to [Feature Sliced Design](https://feature-sliced.design/) to ensure scalability and maintainability.
 
-- `src/app`: Next.js App Router pages and layouts.
-- `src/features`: Logic and components for specific steps (e.g., `quest-steps/IncomeStep`).
-- `src/entities`: Core domain logic, state management (Zustand stores), and configurations (tax data).
-- `src/widgets`: Reusable high-level UI blocks (QuestBar, ActionBoard, QuestFlow).
-- `src/shared`: Shared UI components (buttons, cards) and utilities.
+- `app`: App-wide settings, styles, and providers.
+- `widgets`: Compositional units that glue features together (e.g., `QuestFlow`).
+- `features`: Business logic slices (e.g., `BudgetStep`, `IraStep`). Each slice contains its own `ui`, `model`, and `api`.
+- `entities`: Business domains (e.g., `financial` store, `taxYearConfig`).
+- `shared`: Reusable infrastructure (e.g., `aeo` generator, UI kit).
+
+### AEO & GEO Optimization (The "Semantic Twin")
+This project implements **Answer Engine Optimization (AEO)** to maximize visibility in AI search (ChatGPT, Perplexity, Gemini).
+- **Semantic Twins**: Key features have dedicated "How-To" pages (`/guide/*`, `/docs`) mirroring the interactive logic with valid HTML for crawlers.
+- **Type-Safe JSON-LD**: All pages generate valid `SoftwareApplication` and `FAQPage` schemas via `src/shared/lib/aeo.ts`.
 
 ## Deployment
 

@@ -20,7 +20,7 @@ export type StepId =
     | 'completed'
     | 'budget-exhausted';
 
-export type TaxYear = '2025' | '2026';
+export type TaxYear = string;
 export type FilingStatus = 'single' | 'married_joint' | 'married_separate' | 'head_household';
 
 interface FinancialProfile {

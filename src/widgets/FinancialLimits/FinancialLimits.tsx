@@ -1,12 +1,17 @@
+
 "use client";
 
 import { FINANCIAL_CONSTANTS } from "@/shared/config/financial-constants";
 import { ExternalLink } from "lucide-react";
-import { useState } from "react";
+import { useFinancialStore } from "@/entities/financial/model/financialStore";
+import { getFinancialConstants } from "@/shared/config/financial-constants";
+import { getAvailableTaxYears } from "@/entities/financial/model/taxYearConfig";
 import { cn } from "@/shared/lib/utils";
 
 export function FinancialLimits() {
-    const [selectedYear, setSelectedYear] = useState<"2025" | "2026">("2025");
+    const { selectedYear, setYear } = useFinancialStore();
+    const data = getFinancialConstants(selectedYear);
+    const availableYears = getAvailableTaxYears();
 
     return (
         <div className="container mx-auto py-10 px-4 max-w-5xl">
@@ -21,19 +26,19 @@ export function FinancialLimits() {
 
             {/* Tabs */}
             <div className="flex justify-center mb-8">
-                <div className="grid grid-cols-2 p-1 bg-muted rounded-lg w-full max-w-[400px]">
-                    {["2025", "2026"].map((year) => (
+                <div className="flex gap-2 p-1 bg-muted rounded-lg overflow-x-auto max-w-full">
+                    {availableYears.map((yearInfo) => (
                         <button
-                            key={year}
-                            onClick={() => setSelectedYear(year as "2025" | "2026")}
+                            key={yearInfo.year}
+                            onClick={() => setYear(yearInfo.year)}
                             className={cn(
-                                "py-2 px-4 text-sm font-medium rounded-md transition-all",
-                                selectedYear === year
+                                "py-2 px-4 text-sm font-medium rounded-md transition-all whitespace-nowrap",
+                                selectedYear === yearInfo.year
                                     ? "bg-background text-foreground shadow-sm"
                                     : "text-muted-foreground hover:bg-background/50"
                             )}
                         >
-                            {year} {year === "2025" ? "(Current)" : "(Projected)"}
+                            {yearInfo.label} {yearInfo.status === 'Official' ? "(Official)" : "(Projected)"}
                         </button>
                     ))}
                 </div>
@@ -56,19 +61,19 @@ export function FinancialLimits() {
                                         <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
                                             <td className="p-4 align-middle font-medium">Employee Limit</td>
                                             <td className="p-4 align-middle text-right font-mono text-emerald-600 dark:text-emerald-400">
-                                                ${FINANCIAL_CONSTANTS[selectedYear].k401.limit.toLocaleString()}
+                                                ${data.k401.limit.toLocaleString()}
                                             </td>
                                         </tr>
                                         <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
                                             <td className="p-4 align-middle font-medium">Catch-up (50+)</td>
                                             <td className="p-4 align-middle text-right font-mono text-emerald-600 dark:text-emerald-400">
-                                                ${FINANCIAL_CONSTANTS[selectedYear].k401.catchUp.toLocaleString()}
+                                                ${data.k401.catchUp.toLocaleString()}
                                             </td>
                                         </tr>
                                         <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
                                             <td className="p-4 align-middle font-medium">Total Limit (Emp + match)</td>
                                             <td className="p-4 align-middle text-right font-mono text-emerald-600 dark:text-emerald-400">
-                                                ${FINANCIAL_CONSTANTS[selectedYear].k401.totalLimit?.toLocaleString()}
+                                                ${data.k401.totalLimit?.toLocaleString()}
                                             </td>
                                         </tr>
                                     </tbody>
@@ -90,13 +95,13 @@ export function FinancialLimits() {
                                         <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
                                             <td className="p-4 align-middle font-medium">Contribution Limit</td>
                                             <td className="p-4 align-middle text-right font-mono text-emerald-600 dark:text-emerald-400">
-                                                ${FINANCIAL_CONSTANTS[selectedYear].ira.limit.toLocaleString()}
+                                                ${data.ira.limit.toLocaleString()}
                                             </td>
                                         </tr>
                                         <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
                                             <td className="p-4 align-middle font-medium">Catch-up (50+)</td>
                                             <td className="p-4 align-middle text-right font-mono text-emerald-600 dark:text-emerald-400">
-                                                ${FINANCIAL_CONSTANTS[selectedYear].ira.catchUp.toLocaleString()}
+                                                ${data.ira.catchUp.toLocaleString()}
                                             </td>
                                         </tr>
                                     </tbody>
@@ -121,19 +126,19 @@ export function FinancialLimits() {
                                         <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
                                             <td className="p-4 align-middle font-medium">Self-only</td>
                                             <td className="p-4 align-middle text-right font-mono text-emerald-600 dark:text-emerald-400">
-                                                ${FINANCIAL_CONSTANTS[selectedYear].hsa.self.toLocaleString()}
+                                                ${data.hsa.self.toLocaleString()}
                                             </td>
                                         </tr>
                                         <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
                                             <td className="p-4 align-middle font-medium">Family</td>
                                             <td className="p-4 align-middle text-right font-mono text-emerald-600 dark:text-emerald-400">
-                                                ${FINANCIAL_CONSTANTS[selectedYear].hsa.family.toLocaleString()}
+                                                ${data.hsa.family.toLocaleString()}
                                             </td>
                                         </tr>
                                         <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
                                             <td className="p-4 align-middle font-medium">Catch-up (55+)</td>
                                             <td className="p-4 align-middle text-right font-mono text-emerald-600 dark:text-emerald-400">
-                                                ${FINANCIAL_CONSTANTS[selectedYear].hsa.catchUp.toLocaleString()}
+                                                ${data.hsa.catchUp.toLocaleString()}
                                             </td>
                                         </tr>
                                     </tbody>
@@ -155,19 +160,19 @@ export function FinancialLimits() {
                                         <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
                                             <td className="p-4 align-middle font-medium">Single</td>
                                             <td className="p-4 align-middle text-right font-mono text-emerald-600 dark:text-emerald-400">
-                                                ${FINANCIAL_CONSTANTS[selectedYear].standardDeduction.single.toLocaleString()}
+                                                ${data.standardDeduction.single.toLocaleString()}
                                             </td>
                                         </tr>
                                         <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
                                             <td className="p-4 align-middle font-medium">Married Filing Jointly</td>
                                             <td className="p-4 align-middle text-right font-mono text-emerald-600 dark:text-emerald-400">
-                                                ${FINANCIAL_CONSTANTS[selectedYear].standardDeduction.married.toLocaleString()}
+                                                ${data.standardDeduction.married.toLocaleString()}
                                             </td>
                                         </tr>
                                         <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
                                             <td className="p-4 align-middle font-medium">Head of Household</td>
                                             <td className="p-4 align-middle text-right font-mono text-emerald-600 dark:text-emerald-400">
-                                                ${FINANCIAL_CONSTANTS[selectedYear].standardDeduction.headOfHousehold.toLocaleString()}
+                                                ${data.standardDeduction.headOfHousehold.toLocaleString()}
                                             </td>
                                         </tr>
                                     </tbody>
@@ -184,22 +189,7 @@ export function FinancialLimits() {
                 </h3>
                 <ul className="space-y-2 text-sm text-muted-foreground list-disc list-inside">
                     <li>
-                        <a href="https://www.irs.gov/newsroom/401k-limit-increases-to-23500-for-2025-ira-limit-remains-7000" target="_blank" rel="noopener noreferrer" className="hover:text-primary underline">
-                            IRS Notice 2024-80 (2025 401k & IRA Limits)
-                        </a>
-                    </li>
-                    <li>
-                        <a href="https://www.irs.gov/pub/irs-drop/rp-24-25.pdf" target="_blank" rel="noopener noreferrer" className="hover:text-primary underline">
-                            Rev. Proc. 2024-25 (2025 HSA Limits)
-                        </a>
-                    </li>
-                    <li>
-                        <a href="https://www.irs.gov/pub/irs-drop/rp-24-40.pdf" target="_blank" rel="noopener noreferrer" className="hover:text-primary underline">
-                            Rev. Proc. 2024-40 (2025 Standard Deductions)
-                        </a>
-                    </li>
-                    <li>
-                        <span className="text-muted-foreground/60">2026 limits are based on official IRS November 2025 announcements and inflation projections.</span>
+                        Official IRS notices and inflation adjustments.
                     </li>
                 </ul>
             </div>
