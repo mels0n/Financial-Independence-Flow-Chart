@@ -1,47 +1,22 @@
 "use client";
 
-import { useFinancialStore } from "@/entities/financial/model/financialStore";
 import { ConversationalCard } from "@/shared/ui/ConversationalCard/ConversationalCard";
-import { ArrowRight, Calculator, HelpCircle } from "lucide-react";
+import { ArrowRight, Calculator } from "lucide-react";
 import { JargonTerm } from "@/shared/ui/JargonTerm/JargonTerm";
-import { useState } from "react";
-import { cn } from "@/shared/lib/utils";
+import { useBudgetLogic } from "../model/useBudgetLogic";
 
 export function BudgetStep() {
-    const { profile, setProfileBase, nextStep } = useFinancialStore();
-    const [mode, setMode] = useState<"ask" | "input" | "guidance" | "advice">("ask");
-    const [expenses, setExpenses] = useState("");
-
-    const income = profile.monthlyIncome;
-
-    const handleModeSelection = (selection: "yes" | "no") => {
-        if (selection === "yes") setMode("input");
-        else setMode("guidance");
-    };
-
-    const calculateEstimate = () => {
-        // 50/30/20 Rule estimation (Needs 50, Wants 30 = 80% max expenses usually)
-        const estimated = Math.round(income * 0.8);
-        setExpenses(estimated.toString());
-        setMode("input");
-
-        // Add Action Item for offline task
-        if (typeof useFinancialStore.getState().addActionItem === 'function') {
-            useFinancialStore.getState().addActionItem({
-                id: 'create-budget',
-                label: 'Create a Detailed Budget (You guessed earlier)'
-            });
-        }
-    };
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        const val = parseFloat(expenses.replace(/,/g, ""));
-        if (val >= 0) {
-            setProfileBase({ monthlyExpenses: val });
-            setMode("advice");
-        }
-    };
+    const {
+        mode,
+        income,
+        expenses,
+        setExpenses,
+        handleModeSelection,
+        calculateEstimate,
+        handleSubmit,
+        nextStep,
+        advice
+    } = useBudgetLogic();
 
     if (mode === "ask") {
         return (
@@ -119,7 +94,6 @@ export function BudgetStep() {
         );
     }
 
-    // Input Mode (Original logic, but styled)
     if (mode === "input") {
         return (
             <ConversationalCard
@@ -150,28 +124,10 @@ export function BudgetStep() {
         );
     }
 
-    // Advice Mode (Original logic)
-    const val = parseFloat(expenses.replace(/,/g, ""));
-    const ratio = (val / income) * 100;
-    const disposable = income - val;
-    let message = "";
-    let sentiment = "";
-
-    if (ratio <= 50) {
-        message = "You're living well within your means! This leaves plenty for savings.";
-        sentiment = "🌟 Excellent";
-    } else if (ratio <= 75) {
-        message = "This is a healthy balance, but keep an eye on discretionary spending.";
-        sentiment = "✅ Good";
-    } else {
-        message = "Your expenses are high relative to your income. We might need to look at budgeting strategies.";
-        sentiment = "⚠️ Tight";
-    }
-
     return (
         <ConversationalCard
-            title={sentiment}
-            description={message}
+            title={advice.sentiment}
+            description={advice.message}
             mode="advice"
         >
             <div className="space-y-4">
@@ -182,13 +138,13 @@ export function BudgetStep() {
                     </div>
                     <div className="flex justify-between items-center mb-2">
                         <span className="text-slate-600 dark:text-slate-400">Expenses</span>
-                        <span className="font-semibold text-red-500">-${val.toLocaleString()}</span>
+                        <span className="font-semibold text-red-500">-${advice.numericExpenses.toLocaleString()}</span>
                     </div>
                     <div className="h-px bg-slate-200 dark:bg-slate-700 my-2" />
                     <div className="flex justify-between items-center">
                         <span className="text-slate-900 dark:text-white font-medium">Free Cash Flow</span>
                         <span className="font-bold text-primary text-xl flex items-center gap-1">
-                            +${disposable.toLocaleString()}
+                            +${advice.disposable.toLocaleString()}
                         </span>
                     </div>
                 </div>

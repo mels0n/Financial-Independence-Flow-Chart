@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { AEO } from "@/shared/lib/aeo";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -43,25 +44,17 @@ export const metadata: Metadata = {
     },
 };
 
-const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "WebApplication",
-    "name": "Financial Quest",
-    "url": "https://financial-independence.melson.us",
-    "description": "A guided path to financial calm using Flowchart methodology.",
-    "applicationCategory": "GenericApplication",
-    "operatingSystem": "Any",
-    "author": {
-        "@type": "Person",
-        "name": "Christopher Melson",
-        "url": "https://chris.melson.us/"
-    },
-    "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "USD"
-    }
-};
+const jsonLd = AEO.generateWebConfig({
+    name: "Financial Quest",
+    url: "https://financial-independence.melson.us",
+    description: "A guided path to financial calm using Flowchart methodology.",
+    authorName: "Christopher Melson",
+    authorUrl: "https://chris.melson.us/",
+    applicationCategory: "FinanceApplication",
+    operatingSystem: "Any",
+    price: "0",
+    priceCurrency: "USD"
+});
 
 export default function RootLayout({
     children,

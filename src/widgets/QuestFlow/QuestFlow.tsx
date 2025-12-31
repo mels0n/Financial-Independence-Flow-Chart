@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { YearSelectionStep } from "@/features/quest-steps/YearSelectionStep/YearSelectionStep";
 import { IncomeStep } from "@/features/quest-steps/IncomeStep/IncomeStep";
-import { BudgetStep } from "@/features/quest-steps/BudgetStep/BudgetStep";
+import { BudgetStep } from "@/features/quest-steps/BudgetStep";
 import { EmergencyFundStep } from "@/features/quest-steps/EmergencyFundStep/EmergencyFundStep";
 import { EmployerMatchStep } from "@/features/quest-steps/EmployerMatchStep/EmployerMatchStep";
 import { DebtStep } from "@/features/quest-steps/DebtStep/DebtStep";
