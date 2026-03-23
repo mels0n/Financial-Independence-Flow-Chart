@@ -1,6 +1,7 @@
 "use client";
 
 import { useFinancialStore } from "@/entities/financial/model/financialStore";
+import { getFinancialConstants } from "@/shared/config/financial-constants";
 import { useState } from "react";
 import { ConversationalCard } from "@/shared/ui/ConversationalCard/ConversationalCard";
 import { ArrowRight, BarChart3, Building, PiggyBank } from "lucide-react";
@@ -14,7 +15,7 @@ export function Max401kStep() {
     const [userHasPlan, setUserHasPlan] = useState(true);
     const [spouseHasPlan, setSpouseHasPlan] = useState(true); // Default to true if married
 
-    const baseLimit = selectedYear === '2026' ? 23500 : 23000;
+    const baseLimit = getFinancialConstants(selectedYear).k401.limit;
 
     // Calculate Total Limit
     let limit = 0;

@@ -69,7 +69,7 @@ export default function DocsPage() {
                 <section className="space-y-6">
                     <h2 className="text-2xl font-bold border-b border-border pb-2">Contribution Limits & Thresholds</h2>
                     <p className="text-muted-foreground">
-                        We use official IRS data for 2025 and projections for 2026 based on inflation data.
+                        We use official IRS data for 2026 and projections for 2027 based on inflation data.
                     </p>
 
                     {/* 401(k) / 403(b) */}
@@ -183,7 +183,7 @@ export default function DocsPage() {
                             If you are over the limit, search for "Backdoor Roth IRA".
                         </li>
                         <li>
-                            <strong>401(k) Limits:</strong> The limit applies to your pre-tax AND Roth 401(k) contributions combined. Employer matches do not count towards the $23,500 limit (for 2025), but do count towards the total $70,000 limit.
+                            <strong>401(k) Limits:</strong> The limit applies to your pre-tax AND Roth 401(k) contributions combined. Employer matches do not count towards the $24,500 limit (for 2026), but do count towards the total $72,000 limit.
                         </li>
                         <li>
                             <strong>Tax Year Validity:</strong> You can typically contribute to an IRA or HSA for the previous tax year until Tax Day (April 15).

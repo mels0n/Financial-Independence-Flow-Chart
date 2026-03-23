@@ -1,6 +1,7 @@
 "use client";
 
 import { useFinancialStore } from "@/entities/financial/model/financialStore";
+import { getFinancialConstants } from "@/shared/config/financial-constants";
 import { ConversationalCard } from "@/shared/ui/ConversationalCard/ConversationalCard";
 import { ArrowRight, Receipt, PiggyBank, CalendarClock, Cloud } from "lucide-react";
 import { useState } from "react";
@@ -12,13 +13,9 @@ export function HsaStep() {
     const [alreadyContributed, setAlreadyContributed] = useState(0);
 
     // Constants
-    const LIMIT_FAMILY_2025 = 8550;
-    const LIMIT_SELF_2025 = 4300;
-    const LIMIT_FAMILY_2026 = 8750; // Projected
-    const LIMIT_SELF_2026 = 4400; // Projected
-
-    const limitSelf = selectedYear === '2026' ? LIMIT_SELF_2026 : LIMIT_SELF_2025;
-    const limitFamily = selectedYear === '2026' ? LIMIT_FAMILY_2026 : LIMIT_FAMILY_2025;
+    const { hsa } = getFinancialConstants(selectedYear);
+    const limitSelf = hsa.self;
+    const limitFamily = hsa.family;
 
     const [coverageType, setCoverageType] = useState<"self" | "family">("self");
 

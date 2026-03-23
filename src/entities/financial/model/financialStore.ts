@@ -68,7 +68,7 @@ interface FinancialState {
     getRemainingBudget: () => number;
 }
 
-export const DEFAULT_YEAR = '2025';
+export const DEFAULT_YEAR = '2026';
 
 import { persist, createJSONStorage } from 'zustand/middleware';
 

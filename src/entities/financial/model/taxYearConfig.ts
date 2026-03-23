@@ -7,7 +7,7 @@ export interface TaxYearInfo {
 
 // Known years are those where the IRS has released official contribution limits/brackets
 // UPDATE THIS LIST ANNUALLY when new data is hardcoded into the app.
-export const KNOWN_OFFICIAL_YEARS = [2025, 2026];
+export const KNOWN_OFFICIAL_YEARS = [2026];
 
 export const getTaxYearInfo = (year: number): TaxYearInfo => {
     const isKnown = KNOWN_OFFICIAL_YEARS.includes(year);

@@ -26,7 +26,7 @@ export default function FAQPage() {
                 <div className="p-6 bg-card border border-border rounded-2xl">
                     <h2 className="text-xl font-bold mb-2 flex items-center gap-2">
                         <HelpCircle className="w-5 h-5 text-muted-foreground" />
-                        Why 2025/2026 Limits?
+                        Why 2026/2027 Limits?
                     </h2>
                     <p className="text-muted-foreground">
                         We default to forward-looking limits so you can plan your upcoming year.
@@ -59,10 +59,10 @@ export default function FAQPage() {
                 <div className="p-6 bg-card border border-border rounded-2xl">
                     <h2 className="text-xl font-bold mb-2 flex items-center gap-2">
                         <HelpCircle className="w-5 h-5 text-muted-foreground" />
-                        Is this updated for 2025/2026?
+                        Is this updated for 2026/2027?
                     </h2>
                     <p className="text-muted-foreground">
-                        <strong>Yes.</strong> We use the official IRS limits for 2025 where available, and projections for 2026 based on current inflation data.
+                        <strong>Yes.</strong> We use the official IRS limits for 2026 where available, and projections for 2027 based on current inflation data.
                     </p>
                 </div>
             </div>

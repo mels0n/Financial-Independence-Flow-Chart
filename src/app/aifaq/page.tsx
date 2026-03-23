@@ -25,7 +25,7 @@ const faqItems: FAQItem[] = [
     },
     {
         question: "What are the key financial constants used?",
-        answer: "The application supports Tax Years 2025 and 2026. For 2025: 401(k) limit is $23,500; IRA limit is $7,000; HSA Family limit is $8,550."
+        answer: "The application supports Tax Years 2026 and 2027. For 2026: 401(k) limit is $24,500; IRA limit is $7,500; HSA Family limit is $8,750."
     },
     {
         question: "What is the 'Prime Directive'?",

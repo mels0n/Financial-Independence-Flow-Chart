@@ -1,4 +1,4 @@
-export type TaxYear = "2025" | "2026";
+export type TaxYear = "2026" | "2027";
 
 interface FinancialLimits {
     k401: {
@@ -24,52 +24,51 @@ interface FinancialLimits {
 
 export const FINANCIAL_CONSTANTS: Record<TaxYear, FinancialLimits> & { hsaInterestRate: number } = {
     hsaInterestRate: 0.042, // 4.2% Conservative HYSA average
-    "2025": {
-        k401: {
-            limit: 23500, // Source: IRS Notice 2024-80
-            catchUp: 7500, // Source: IRS Notice 2024-80
-            totalLimit: 70000, // Source: IRS Notice 2024-80
-        },
-        ira: {
-            limit: 7000, // Source: IRS Notice 2024-80
-            catchUp: 1000, // Source: IRS Notice 2024-80
-        },
-        hsa: {
-            self: 4300, // Source: Rev. Proc. 2024-25
-            family: 8550, // Source: Rev. Proc. 2024-25
-            catchUp: 1000, // Fixed by law
-        },
-        standardDeduction: {
-            single: 15750, // Source: Rev. Proc. 2024-40
-            married: 31500, // Source: Rev. Proc. 2024-40
-            headOfHousehold: 23625, // Source: Rev. Proc. 2024-40
-        },
-    },
     "2026": {
         k401: {
-            limit: 24500, // Source: IRS Announcement Nov 2025
-            catchUp: 8000, // Source: IRS Announcement Nov 2025
-            totalLimit: 72000, // Source: IRS Announcement Nov 2025
+            limit: 24500, // Source: IRS IR-2025-111
+            catchUp: 8000, // Source: IRS IR-2025-111
+            totalLimit: 72000, // Source: IRS IR-2025-111
         },
         ira: {
-            limit: 7500, // Source: IRS Announcement Nov 2025
-            catchUp: 1100, // Source: IRS Announcement Nov 2025
+            limit: 7500, // Source: IRS IR-2025-111
+            catchUp: 1100, // Source: IRS IR-2025-111
         },
         hsa: {
             self: 4400, // Source: Rev. Proc. 2025-19
             family: 8750, // Source: Rev. Proc. 2025-19
-            catchUp: 1000,
+            catchUp: 1000, // Fixed by law
         },
         standardDeduction: {
-            single: 16100, // Source: IRS Projection / Inflation Adjustment
-            married: 32200, // Source: IRS Projection / Inflation Adjustment
-            headOfHousehold: 24150, // Source: IRS Projection / Inflation Adjustment
+            single: 16100, // Source: IRS Rev. Proc. 2025-xx (Tax Year 2026)
+            married: 32200, // Source: IRS Rev. Proc. 2025-xx (Tax Year 2026)
+            headOfHousehold: 24150, // Source: IRS Rev. Proc. 2025-xx (Tax Year 2026)
+        },
+    },
+    "2027": {
+        k401: {
+            limit: 25500, // Projected — inflation-based estimate
+            catchUp: 8000, // Projected — no change expected
+            totalLimit: 73500, // Projected — inflation-based estimate
+        },
+        ira: {
+            limit: 7500, // Projected — IRS frequently holds IRA limit unchanged
+            catchUp: 1100, // Projected — no change expected
+        },
+        hsa: {
+            self: 4550, // Projected — inflation-based estimate
+            family: 9050, // Projected — inflation-based estimate
+            catchUp: 1000, // Fixed by law
+        },
+        standardDeduction: {
+            single: 16550, // Projected — inflation-based estimate
+            married: 33100, // Projected — inflation-based estimate
+            headOfHousehold: 24900, // Projected — inflation-based estimate
         },
     },
 };
 // Helper to safely get constants, falling back to latest year for projections
 export const getFinancialConstants = (year: string): FinancialLimits => {
-    // If exact match exists, return it
     // If exact match exists and is not the interest rate constant
     if (year in FINANCIAL_CONSTANTS && year !== 'hsaInterestRate') {
         const val = FINANCIAL_CONSTANTS[year as keyof typeof FINANCIAL_CONSTANTS];
@@ -79,6 +78,5 @@ export const getFinancialConstants = (year: string): FinancialLimits => {
     }
 
     // Fallback: Return the latest known year (Projected logic)
-    // We assume 2026 is the latest for now. This could be dynamic but explicitly safe is better here.
-    return FINANCIAL_CONSTANTS["2026"];
+    return FINANCIAL_CONSTANTS["2027"];
 };
