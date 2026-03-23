@@ -26,13 +26,13 @@ export const FINANCIAL_CONSTANTS: Record<TaxYear, FinancialLimits> & { hsaIntere
     hsaInterestRate: 0.042, // 4.2% Conservative HYSA average
     "2026": {
         k401: {
-            limit: 24500, // Source: IRS IR-2025-111
-            catchUp: 8000, // Source: IRS IR-2025-111
-            totalLimit: 72000, // Source: IRS IR-2025-111
+            limit: 24500, // Source: IRS Notice 2025-67
+            catchUp: 8000, // Source: IRS Notice 2025-67
+            totalLimit: 72000, // Source: IRS Notice 2025-67
         },
         ira: {
-            limit: 7500, // Source: IRS IR-2025-111
-            catchUp: 1100, // Source: IRS IR-2025-111
+            limit: 7500, // Source: IRS Notice 2025-67
+            catchUp: 1100, // Source: IRS Notice 2025-67
         },
         hsa: {
             self: 4400, // Source: Rev. Proc. 2025-19
@@ -40,14 +40,14 @@ export const FINANCIAL_CONSTANTS: Record<TaxYear, FinancialLimits> & { hsaIntere
             catchUp: 1000, // Fixed by law
         },
         standardDeduction: {
-            single: 16100, // Source: IRS Rev. Proc. 2025-xx (Tax Year 2026)
-            married: 32200, // Source: IRS Rev. Proc. 2025-xx (Tax Year 2026)
-            headOfHousehold: 24150, // Source: IRS Rev. Proc. 2025-xx (Tax Year 2026)
+            single: 16100, // Source: IRS Rev. Proc. 2025-28
+            married: 32200, // Source: IRS Rev. Proc. 2025-28
+            headOfHousehold: 24150, // Source: IRS Rev. Proc. 2025-28
         },
     },
     "2027": {
         k401: {
-            limit: 25500, // Projected — inflation-based estimate
+            limit: 25500, // Projected — inflation-based estimate; update when IRS announces (~Nov 2026)
             catchUp: 8000, // Projected — no change expected
             totalLimit: 73500, // Projected — inflation-based estimate
         },

@@ -13,9 +13,7 @@ export function HsaStep() {
     const [alreadyContributed, setAlreadyContributed] = useState(0);
 
     // Constants
-    const { hsa } = getFinancialConstants(selectedYear);
-    const limitSelf = hsa.self;
-    const limitFamily = hsa.family;
+    const { self: limitSelf, family: limitFamily } = getFinancialConstants(selectedYear).hsa;
 
     const [coverageType, setCoverageType] = useState<"self" | "family">("self");
 
@@ -103,7 +101,7 @@ export function HsaStep() {
             >
                 <div className="space-y-6">
                     <p className="text-muted-foreground">
-                        This usually means your insurance deductible is at least <strong>$1,600 (Self)</strong> or <strong>$3,200 (Family)</strong>.
+                        This usually means your insurance deductible is at least <strong>$1,700 (Self)</strong> or <strong>$3,400 (Family)</strong>.
                         <br /><br />
                         Commonly found in employer plans as the "low premium" option with an HSA attached.
                     </p>
@@ -302,7 +300,7 @@ export function HsaStep() {
                         <div>
                             <h4 className="font-bold text-foreground">3. Reimburse Yourself Later</h4>
                             <p className="text-sm text-muted-foreground">
-                                In 20 years, when you need cash, "reimburse" yourself for that MRI from 2025 tax-free.
+                                In 20 years, when you need cash, "reimburse" yourself for that MRI from a prior year tax-free.
                                 You basically get a tax-free emergency fund for life.
                             </p>
                         </div>

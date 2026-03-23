@@ -178,8 +178,8 @@ export default function DocsPage() {
                     <h2 className="text-2xl font-bold border-b border-border pb-2">Official Sources & Notes</h2>
                     <ul className="list-disc list-inside space-y-2 text-muted-foreground">
                         <li>
-                            <strong>Roth IRA Income Limits:</strong> High earners may not be eligible to contribute directly.
-                            <a href="https://www.irs.gov/retirement-plans/amount-of-roth-ira-contributions-that-you-can-make-for-2024" className="text-primary hover:underline ml-1" target="_blank">Check IRS Limits</a>.
+                            <strong>Roth IRA Income Limits:</strong> High earners (~$153k+ Single / ~$242k+ Married) may not be eligible to contribute directly.
+                            <a href="https://www.irs.gov/retirement-plans/amount-of-roth-ira-contributions-that-you-can-make-for-2026" className="text-primary hover:underline ml-1" target="_blank">Check IRS Limits</a>.
                             If you are over the limit, search for "Backdoor Roth IRA".
                         </li>
                         <li>

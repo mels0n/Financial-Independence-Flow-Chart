@@ -58,7 +58,7 @@ export function IraStep() {
                         <p className="text-slate-500 dark:text-slate-400 mb-2">{selectedYear} Combined Limit</p>
                         <p className="text-5xl font-bold text-slate-900 dark:text-white tracking-tight">${limit.toLocaleString()}</p>
                         <div className="flex flex-col gap-1 mt-2">
-                            <p className="text-slate-400 text-sm">($7,500 × 2 people)</p>
+                            <p className="text-slate-400 text-sm">(${limits.limit.toLocaleString()} × 2 people)</p>
                             <p className="text-slate-400 text-xs">+$1,000 catch-up per person if 50+</p>
                         </div>
                     </div>
