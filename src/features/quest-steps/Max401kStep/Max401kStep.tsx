@@ -11,22 +11,33 @@ export function Max401kStep() {
 
     // State
     const [alreadyContributed, setAlreadyContributed] = useState(0);
+    const [userHasPlan, setUserHasPlan] = useState(true);
     const [spouseHasPlan, setSpouseHasPlan] = useState(true); // Default to true if married
 
     const baseLimit = selectedYear === '2026' ? 23500 : 23000;
 
     // Calculate Total Limit
-    let limit = baseLimit;
+    let limit = 0;
     let limitDescription = "Individual Limit";
 
     if (profile.filingStatus === 'married_joint') {
-        if (spouseHasPlan) {
-            limit = baseLimit * 2;
+        const userLimit = userHasPlan ? baseLimit : 0;
+        const spouseLimit = spouseHasPlan ? baseLimit : 0;
+        limit = userLimit + spouseLimit;
+
+        if (userHasPlan && spouseHasPlan) {
             limitDescription = "Combined Limit (Both Working)";
+        } else if (userHasPlan) {
+            limitDescription = "Your Limit Only";
+        } else if (spouseHasPlan) {
+            limitDescription = "Spouse Limit Only";
         } else {
-            limit = baseLimit;
-            limitDescription = "Your Limit Only (Spouse has no plan)";
+            limitDescription = "No Plans Available";
         }
+    } else {
+        // Single / Head of Household
+        limit = userHasPlan ? baseLimit : 0;
+        limitDescription = userHasPlan ? "Individual Limit" : "No Plan Available";
     }
 
     // Logic
@@ -81,20 +92,37 @@ export function Max401kStep() {
                             </div>
                         </div>
 
-                        {profile.filingStatus === 'married_joint' && (
-                            <div className="mt-4 pt-4 border-t border-blue-200 dark:border-blue-800 flex items-center gap-2">
+                        <div className="mt-4 pt-4 border-t border-blue-200 dark:border-blue-800 space-y-3">
+                            {/* User Checkbox */}
+                            <div className="flex items-center gap-2">
                                 <input
                                     type="checkbox"
-                                    checked={spouseHasPlan}
-                                    onChange={e => setSpouseHasPlan(e.target.checked)}
-                                    id="spouse-plan"
+                                    checked={userHasPlan}
+                                    onChange={e => setUserHasPlan(e.target.checked)}
+                                    id="user-plan"
                                     className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
                                 />
-                                <label htmlFor="spouse-plan" className="text-sm text-foreground select-none cursor-pointer">
-                                    My spouse also has a 401k/403b at work
+                                <label htmlFor="user-plan" className="text-sm text-foreground select-none cursor-pointer">
+                                    I have a 401k/403b available at my job
                                 </label>
                             </div>
-                        )}
+
+                            {/* Spouse Checkbox (Only if married) */}
+                            {profile.filingStatus === 'married_joint' && (
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={spouseHasPlan}
+                                        onChange={e => setSpouseHasPlan(e.target.checked)}
+                                        id="spouse-plan"
+                                        className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                    />
+                                    <label htmlFor="spouse-plan" className="text-sm text-foreground select-none cursor-pointer">
+                                        My spouse has a 401k/403b available at their job
+                                    </label>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 )}
 

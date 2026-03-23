@@ -70,8 +70,8 @@ export function IncomeStep() {
             title={filingStatus === "married_joint" ? "Household Income" : "Your Income"}
             description={
                 filingStatus === "married_joint"
-                    ? "What is the total combined monthly take-home pay for both of you?"
-                    : "What is your approximate monthly take-home pay?"
+                    ? (<span>What is the total combined <strong>MONTHLY</strong> take-home pay for both of you?</span>)
+                    : (<span>What is your approximate <strong>MONTHLY</strong> take-home pay?</span>)
             }
         >
             <form onSubmit={handleSubmit} className="flex gap-4 items-center">
@@ -85,6 +85,9 @@ export function IncomeStep() {
                         placeholder="4,000"
                         autoFocus
                     />
+                    <p className="absolute -bottom-6 left-1 text-xs text-muted-foreground font-medium">
+                        * Please enter monthly amount, not yearly
+                    </p>
                 </div>
                 <button
                     type="submit"

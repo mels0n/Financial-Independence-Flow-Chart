@@ -75,7 +75,7 @@ export function EmergencyFundStep({ mode = "starter" }: EmergencyFundStepProps) 
     const titleText = mode === "starter" ? "Safety Net 🕸️" : "Fortress of Solitude 🏰";
 
     const descriptionText = mode === "starter"
-        ? `Before we invest, let's make sure you won't crash. Do you have at least 1 month of expenses ($${starterTarget.toLocaleString()}) in CASH savings?`
+        ? `Before we invest, let's make sure you won't crash. You need at least 1 month of expenses ($${starterTarget.toLocaleString()}) in CASH (not invested) savings. How much do you have saved?`
         : `You previously noted $${profile.emergencyFundAmount.toLocaleString()} saved. To reach financial peace, we need 3-6 months of expenses. What is your TOTAL emergency savings now?`;
 
     const handleSubmitAmount = (e: React.FormEvent) => {
@@ -206,7 +206,7 @@ export function EmergencyFundStep({ mode = "starter" }: EmergencyFundStepProps) 
         if (isFunded) {
             title = mode === "starter" ? "Safety Net Secured" : "Fortress Built";
             description = mode === "starter"
-                ? "Excellent. having one month of cash prevents minor mishaps from becoming debt disasters."
+                ? "Excellent. Having at least one month of cash prevents minor mishaps from becoming debt disasters."
                 : `You are fully funded for ${isStable ? '3' : '6'} months of expenses. You have ultimate freedom of mind.`;
             icon = mode === "starter" ? <Battery className="w-12 h-12 text-emerald-500" /> : <BatteryFull className="w-12 h-12 text-primary" />;
         } else {

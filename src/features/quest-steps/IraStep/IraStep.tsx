@@ -94,7 +94,7 @@ export function IraStep() {
                 {/* Already Contributed Input */}
                 <div className="p-4 border border-border rounded-xl flex items-center justify-between bg-card">
                     <div>
-                        <label className="text-sm font-medium text-foreground">Already contributed this year?</label>
+                        <label className="text-sm font-medium text-foreground">Already contributed this year (or setup to contribute)?</label>
                         <p className="text-xs text-muted-foreground">{selectedYear} contributions only</p>
                     </div>
                     <div className="relative w-32">

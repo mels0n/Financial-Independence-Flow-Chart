@@ -161,7 +161,7 @@ export function HsaStep() {
                     {/* Already Contributed Input */}
                     <div className="p-4 border border-border rounded-xl flex items-center justify-between">
                         <div>
-                            <label className="text-sm font-medium text-foreground">Already contributed?</label>
+                            <label className="text-sm font-medium text-foreground">Already contributed (or setup to contribute)?</label>
                             <p className="text-xs text-muted-foreground">Includes employer match</p>
                         </div>
                         <div className="relative w-32">

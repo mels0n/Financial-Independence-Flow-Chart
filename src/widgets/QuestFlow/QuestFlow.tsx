@@ -27,14 +27,25 @@ export function QuestFlow() {
 
     return (
         <div className="w-full max-w-2xl mx-auto relative">
-            {canGoBack && (
-                <button
-                    onClick={goBack}
-                    className="mb-4 flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors pl-2"
-                >
-                    <ArrowLeft className="w-4 h-4" /> Back
-                </button>
-            )}
+            <div className="flex justify-between items-center mb-4 pl-2 pr-2">
+                {canGoBack ? (
+                    <button
+                        onClick={goBack}
+                        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
+                    >
+                        <ArrowLeft className="w-4 h-4" /> Back
+                    </button>
+                ) : <div />} {/* Spacer if no back button */}
+
+                {history.length > 0 && (
+                    <button
+                        onClick={resetFinancialQuest}
+                        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-destructive transition-colors"
+                    >
+                        <RefreshCcw className="w-3 h-3" /> Start Over
+                    </button>
+                )}
+            </div>
 
             <AnimatePresence mode="wait">
                 <motion.div
