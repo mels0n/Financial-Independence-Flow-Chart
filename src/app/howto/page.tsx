@@ -1,6 +1,13 @@
+import type { Metadata } from "next";
 import { ArrowRight, Calculator, CheckCircle2, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { Footer } from "@/widgets/Footer/Footer";
+
+export const metadata: Metadata = {
+    alternates: {
+        canonical: "/howto",
+    },
+};
 
 export default function HowToPage() {
     return (

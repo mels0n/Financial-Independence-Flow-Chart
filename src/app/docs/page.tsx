@@ -7,6 +7,9 @@ import { ArrowLeft, ExternalLink, ScrollText } from "lucide-react";
 export const metadata = {
     title: "Financial Documentation & Limits | Financial Quest",
     description: "Official tax limits, contribution maximums, and standard deductions for current and projected years.",
+    alternates: {
+        canonical: "/docs",
+    },
 };
 
 export default function DocsPage() {

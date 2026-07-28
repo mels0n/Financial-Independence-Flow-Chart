@@ -1,6 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { HelpCircle } from "lucide-react";
 import { Footer } from "@/widgets/Footer/Footer";
+
+export const metadata: Metadata = {
+    alternates: {
+        canonical: "/faq",
+    },
+};
 
 export default function FAQPage() {
     return (

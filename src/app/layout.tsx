@@ -22,9 +22,6 @@ export const metadata: Metadata = {
     authors: [{ name: "Christopher Melson", url: "https://chris.melson.us/" }],
     creator: "Christopher Melson",
     publisher: "Christopher Melson",
-    alternates: {
-        canonical: "/",
-    },
     openGraph: {
         title: "Financial Quest | Path to Independence",
         description: "Visualize your path to financial independence. An interactive guide based on proven personal finance principles.",

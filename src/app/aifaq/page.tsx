@@ -4,6 +4,9 @@ import { AEO, FAQItem } from "@/shared/lib/aeo";
 export const metadata: Metadata = {
     title: "About Financial Quest (AI Context)",
     description: "Structured context for AI agents regarding the Financial Quest application.",
+    alternates: {
+        canonical: "/aifaq",
+    },
 };
 
 const faqItems: FAQItem[] = [
