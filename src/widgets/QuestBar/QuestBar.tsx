@@ -1,10 +1,12 @@
 "use client";
 
+import { useId } from "react";
 import { useFinancialStore } from "@/entities/financial/model/financialStore";
 import { useShallow } from "zustand/react/shallow";
 import {
     PHASES,
     PHASE_ICONS,
+    QUEST_COMPLETE_LORE,
     getEarnedPhases,
     getMaxReachedIndex,
     getPhaseSteps,
@@ -20,6 +22,7 @@ import {
     ScrollText,
     Swords,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 interface QuestBarProps {
     className?: string;
@@ -194,31 +197,26 @@ export function QuestBar({ className }: QuestBarProps) {
                     <ul className="flex flex-wrap gap-2">
                         {PHASES.map((phase) => {
                             const earned = earnedPhases.includes(phase.id);
-                            const Icon = PHASE_ICONS[phase.id];
                             return (
                                 <li key={phase.id}>
-                                    <span className={cn(
-                                        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold",
-                                        earned
-                                            ? "border border-reward/50 bg-reward/15 text-reward"
-                                            : "border border-dashed border-border text-muted-foreground/70"
-                                    )}>
-                                        <Icon className="h-3.5 w-3.5" aria-hidden />
-                                        {phase.badgeName}
-                                    </span>
+                                    <BadgeChip
+                                        earned={earned}
+                                        name={phase.badgeName}
+                                        icon={PHASE_ICONS[phase.id]}
+                                        lore={phase.badgeLore}
+                                        howToEarn={`Clear the ${phase.name} phase (${phase.tagline.toLowerCase()}).`}
+                                    />
                                 </li>
                             );
                         })}
                         <li>
-                            <span className={cn(
-                                "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold",
-                                questDone
-                                    ? "border border-reward/50 bg-reward/15 text-reward"
-                                    : "border border-dashed border-border text-muted-foreground/70"
-                            )}>
-                                <Trophy className="h-3.5 w-3.5" aria-hidden />
-                                Quest Complete
-                            </span>
+                            <BadgeChip
+                                earned={questDone}
+                                name="Quest Complete"
+                                icon={Trophy}
+                                lore={QUEST_COMPLETE_LORE}
+                                howToEarn="Finish all 16 steps of the quest."
+                            />
                         </li>
                     </ul>
                 </div>
@@ -235,6 +233,61 @@ export function QuestBar({ className }: QuestBarProps) {
                 </a>
             </div>
         </div>
+    );
+}
+
+interface BadgeChipProps {
+    earned: boolean;
+    name: string;
+    icon: LucideIcon;
+    /** What the badge means once earned */
+    lore: string;
+    /** How a locked badge is earned */
+    howToEarn: string;
+}
+
+/**
+ * A badge with its story one hover away. Works for keyboard focus and a tap on
+ * touch screens too: the chip is focusable and the tooltip shows on focus.
+ */
+function BadgeChip({ earned, name, icon: Icon, lore, howToEarn }: BadgeChipProps) {
+    const tooltipId = useId();
+    return (
+        <span className="group relative inline-block">
+            <span
+                tabIndex={0}
+                aria-describedby={tooltipId}
+                className={cn(
+                    "inline-flex cursor-help items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold",
+                    earned
+                        ? "border border-reward/50 bg-reward/15 text-reward"
+                        : "border border-dashed border-border text-muted-foreground/70"
+                )}
+            >
+                <Icon className="h-3.5 w-3.5" aria-hidden />
+                {name}
+            </span>
+            <span
+                id={tooltipId}
+                role="tooltip"
+                className="pointer-events-none invisible absolute bottom-full left-0 z-30 mb-2 w-60 rounded-xl border border-border bg-popover p-3 text-left opacity-0 shadow-lg shadow-background/60 transition-opacity duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
+            >
+                <span className={cn(
+                    "mb-1 block font-mono text-[10px] font-semibold uppercase tracking-[0.14em]",
+                    earned ? "text-reward" : "text-muted-foreground"
+                )}>
+                    {earned ? "Badge earned" : "Badge locked"}
+                </span>
+                <span className="block text-xs leading-relaxed text-popover-foreground">
+                    {earned ? lore : howToEarn}
+                </span>
+                {!earned && (
+                    <span className="mt-1.5 block text-[11px] leading-relaxed text-muted-foreground">
+                        {lore}
+                    </span>
+                )}
+            </span>
+        </span>
     );
 }
 

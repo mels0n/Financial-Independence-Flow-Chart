@@ -32,6 +32,8 @@ export interface FlowPhase {
     name: string;
     tagline: string;
     badgeName: string;
+    /** Shown in the badge tooltip: what clearing this phase actually means */
+    badgeLore: string;
 }
 
 export interface FlowStep {
@@ -43,11 +45,26 @@ export interface FlowStep {
 }
 
 export const PHASES: FlowPhase[] = [
-    { id: 'foundation', name: 'Foundation', tagline: 'Know your numbers', badgeName: 'Cartographer' },
-    { id: 'protect', name: 'Protect', tagline: 'Guaranteed wins first', badgeName: 'Shieldbearer' },
-    { id: 'grow', name: 'Grow', tagline: 'Fill the tax shelters', badgeName: 'Tax Unicorn' },
-    { id: 'optimize', name: 'Optimize', tagline: 'Every last dollar', badgeName: 'Juggernaut' },
+    {
+        id: 'foundation', name: 'Foundation', tagline: 'Know your numbers', badgeName: 'Cartographer',
+        badgeLore: 'Mapped the terrain: tax year picked, income and expenses on the table. The whole quest runs on these numbers.',
+    },
+    {
+        id: 'protect', name: 'Protect', tagline: 'Guaranteed wins first', badgeName: 'Shieldbearer',
+        badgeLore: 'Built the defenses: starter cash in place, full employer match claimed, high-interest debt handled, emergency fund complete.',
+    },
+    {
+        id: 'grow', name: 'Grow', tagline: 'Fill the tax shelters', badgeName: 'Tax Unicorn',
+        badgeLore: 'Filled the tax shelters: HSA, IRA, and 401(k) working at full strength, with moderate debt under control.',
+    },
+    {
+        id: 'optimize', name: 'Optimize', tagline: 'Every last dollar', badgeName: 'Juggernaut',
+        badgeLore: 'Squeezed every last dollar: future goals funded, education and mega backdoor weighed, final debts decided, taxable bridge built.',
+    },
 ];
+
+/** Tooltip copy for the final badge, which is not tied to a single phase. */
+export const QUEST_COMPLETE_LORE = 'All 16 steps cleared and every dollar of the budget assigned a job. The rarest badge on the shelf.';
 
 export const FLOW_STEPS: FlowStep[] = [
     {
