@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-07T00:00:00Z",
+  "title": "Design System: Financial Quest",
+  "extensions": {
+    "colorMeta": {
+      "teal-ink": { "role": "neutral", "displayName": "Teal Ink", "canonical": "hsl(195 40% 7%)", "tonalRamp": ["hsl(195 40% 4%)", "hsl(195 40% 7%)", "hsl(194 34% 10%)", "hsl(192 28% 15%)", "hsl(191 26% 18%)", "hsl(190 20% 35%)", "hsl(185 18% 60%)", "hsl(165 25% 92%)"] },
+      "electric-verdigris": { "role": "primary", "displayName": "Electric Verdigris", "canonical": "hsl(165 75% 52%)", "tonalRamp": ["hsl(165 75% 15%)", "hsl(165 75% 25%)", "hsl(165 75% 35%)", "hsl(165 75% 45%)", "hsl(165 75% 52%)", "hsl(165 70% 65%)", "hsl(165 60% 80%)", "hsl(165 45% 93%)"] },
+      "earned-gold": { "role": "secondary", "displayName": "Earned Gold", "canonical": "hsl(43 90% 62%)", "tonalRamp": ["hsl(43 90% 15%)", "hsl(43 90% 25%)", "hsl(43 90% 38%)", "hsl(43 90% 50%)", "hsl(43 90% 62%)", "hsl(43 85% 72%)", "hsl(43 80% 84%)", "hsl(43 70% 94%)"] },
+      "money-emerald": { "role": "secondary", "displayName": "Money Emerald", "canonical": "hsl(152 65% 55%)", "tonalRamp": ["hsl(152 65% 15%)", "hsl(152 65% 25%)", "hsl(152 65% 35%)", "hsl(152 65% 45%)", "hsl(152 65% 55%)", "hsl(152 60% 68%)", "hsl(152 55% 82%)", "hsl(152 45% 93%)"] },
+      "caution-amber": { "role": "secondary", "displayName": "Caution Amber", "canonical": "hsl(35 92% 62%)", "tonalRamp": ["hsl(35 92% 15%)", "hsl(35 92% 26%)", "hsl(35 92% 38%)", "hsl(35 92% 50%)", "hsl(35 92% 62%)", "hsl(35 88% 72%)", "hsl(35 82% 84%)", "hsl(35 70% 94%)"] },
+      "problem-red": { "role": "secondary", "displayName": "Problem Red", "canonical": "hsl(6 80% 62%)", "tonalRamp": ["hsl(6 80% 15%)", "hsl(6 80% 26%)", "hsl(6 80% 38%)", "hsl(6 80% 50%)", "hsl(6 80% 62%)", "hsl(6 75% 72%)", "hsl(6 68% 84%)", "hsl(6 55% 94%)"] },
+      "mist-text": { "role": "neutral", "displayName": "Mist Text", "canonical": "hsl(165 25% 92%)", "tonalRamp": ["hsl(165 25% 15%)", "hsl(170 20% 30%)", "hsl(175 16% 45%)", "hsl(180 12% 62%)", "hsl(172 15% 75%)", "hsl(168 20% 85%)", "hsl(165 25% 92%)", "hsl(165 30% 97%)"] },
+      "fog-text": { "role": "neutral", "displayName": "Fog Text", "canonical": "hsl(180 12% 62%)", "tonalRamp": ["hsl(180 12% 15%)", "hsl(180 12% 25%)", "hsl(180 12% 36%)", "hsl(180 12% 48%)", "hsl(180 12% 62%)", "hsl(180 12% 73%)", "hsl(180 12% 84%)", "hsl(180 12% 94%)"] },
+      "ledger-line": { "role": "neutral", "displayName": "Ledger Line", "canonical": "hsl(191 26% 18%)", "tonalRamp": ["hsl(191 26% 8%)", "hsl(191 26% 12%)", "hsl(191 26% 18%)", "hsl(191 26% 28%)", "hsl(191 26% 42%)", "hsl(191 22% 58%)", "hsl(191 20% 76%)", "hsl(191 18% 92%)"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Step-card titles and page h1s. Bricolage Grotesque bold, tracking-tight, text-wrap: balance." },
+      "headline": { "displayName": "Headline", "purpose": "Rail headers and section h2s, paired with a verdigris Lucide icon." },
+      "figure": { "displayName": "Figure", "purpose": "The recommended number — the largest element on any step. Mono, tabular, line-height 1." },
+      "body": { "displayName": "Body", "purpose": "Descriptions in fog text, statements in mist text; prose capped near 62ch." },
+      "label": { "displayName": "Mono-Caps Label", "purpose": "Ledger annotation layer: uppercase tracked mono at 10-11px for labels, phase names, table headers, status chips." }
+    },
+    "shadows": [
+      { "name": "ambient-card-seat", "value": "0 16px 48px -24px hsl(var(--background))", "purpose": "Default step card grounding against the grid." },
+      { "name": "advice-glow", "value": "0 16px 48px -16px hsl(var(--primary) / 0.25)", "purpose": "Advice-mode cards, paired with a primary/30 border." },
+      { "name": "hover-invitation", "value": "0 8px 24px -12px hsl(var(--primary) / 0.35)", "purpose": "Unchecked action tiles on hover." },
+      { "name": "reward-glow", "value": "0 20px 60px -20px hsl(var(--reward) / 0.45)", "purpose": "The milestone toast only — the one gold moment." },
+      { "name": "active-halo", "value": "0 0 0 3px hsl(var(--primary) / 0.2)", "purpose": "Ring around the current step's marker dot." }
+    ],
+    "motion": [
+      { "name": "spring-card-entry", "value": "spring(damping 22, stiffness 260)", "purpose": "ConversationalCard enter: opacity 0/y 40/scale 0.97 to rest." },
+      { "name": "spring-toast", "value": "spring(damping 26, stiffness 380)", "purpose": "Milestone toast in/out; collapses to opacity-only under reduced motion." },
+      { "name": "spring-check", "value": "spring(damping 24, stiffness 500)", "purpose": "Action-item checkmark pop." },
+      { "name": "bar-ease", "value": "transition-all 500ms", "purpose": "Budget bar and progress bar segment widths." },
+      { "name": "accordion", "value": "0.2s ease-out", "purpose": "Accordion open/close (tailwindcss-animate)." },
+      { "name": "reduced-motion-kill", "value": "@media (prefers-reduced-motion: reduce) { animation/transition duration 0.01ms }", "purpose": "Global; canvas confetti additionally checks useReducedMotion before drawing." }
+    ],
+    "breakpoints": [
+      { "name": "lg", "value": "1024px", "purpose": "Quest Log rail appears; mobile header hides." },
+      { "name": "xl", "value": "1280px", "purpose": "Action Board rail appears." },
+      { "name": "2xl-container", "value": "1400px", "purpose": "Container cap, centered, 2rem padding." }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The allocate/advance action: solid verdigris, full-width, bold.",
+      "html": "<button class=\"ds-btn-primary\">Allocate $712<span class=\"ds-btn-per\">/mo</span></button>",
+      "css": ".ds-btn-primary { width: 100%; padding: 16px; background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); border: none; border-radius: 16px; font-weight: 700; font-size: 16px; cursor: pointer; transition: filter 0.15s, transform 0.1s; } .ds-btn-primary:hover { filter: brightness(1.1); } .ds-btn-primary:active { transform: scale(0.99); } .ds-btn-primary:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; } .ds-btn-primary:disabled { opacity: 0.5; } .ds-btn-per { font-size: 0.72em; font-weight: 500; opacity: 0.7; }"
+    },
+    {
+      "name": "Success Button",
+      "kind": "button",
+      "refersTo": "button-success",
+      "description": "Used only when the action itself is a money-good move (e.g. lump-sum funding).",
+      "html": "<button class=\"ds-btn-success\">Fund $2,150 now from surplus cash</button>",
+      "css": ".ds-btn-success { width: 100%; padding: 16px; background: hsl(var(--success)); color: hsl(var(--success-foreground)); border: none; border-radius: 16px; font-weight: 700; font-size: 16px; cursor: pointer; transition: filter 0.15s, transform 0.1s; } .ds-btn-success:hover { filter: brightness(1.1); } .ds-btn-success:active { transform: scale(0.99); } .ds-btn-success:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }"
+    },
+    {
+      "name": "Conversational Card",
+      "kind": "card",
+      "refersTo": "card-conversational",
+      "description": "The step card: icon chip, balanced display title, fog description. Advice mode shown via modifier.",
+      "html": "<div class=\"ds-card\"><div class=\"ds-card-head\"><span class=\"ds-card-icon\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.25\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z\"/></svg></span><div><h2 class=\"ds-card-title\">The super account</h2><p class=\"ds-card-desc\">Before we talk numbers, there is a secret weapon to unlock.</p></div></div></div>",
+      "css": ".ds-card { max-width: 42rem; padding: 32px; background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: 24px; box-shadow: 0 16px 48px -24px hsl(var(--background)); } .ds-card-head { display: flex; gap: 16px; align-items: flex-start; } .ds-card-icon { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; flex-shrink: 0; margin-top: 4px; border-radius: 16px; border: 1px solid hsl(var(--border)); background: hsl(var(--secondary)); color: hsl(var(--foreground)); } .ds-card-title { margin: 0 0 8px; font-family: 'Bricolage Grotesque', sans-serif; font-size: 2rem; font-weight: 700; line-height: 1.2; letter-spacing: -0.025em; color: hsl(var(--foreground)); text-wrap: balance; } .ds-card-desc { margin: 0; font-size: 1.125rem; line-height: 1.625; color: hsl(var(--muted-foreground)); }"
+    },
+    {
+      "name": "Recommendation Block",
+      "kind": "custom",
+      "refersTo": "recommendation-block",
+      "description": "The signature shape of every computed recommendation: mono-caps label, huge verdigris figure with cadence, benefit, dashed rule, Show-the-math disclosure.",
+      "html": "<div class=\"ds-rec\"><div class=\"ds-rec-row\"><div><div class=\"ds-rec-label\">Recommended</div><div class=\"ds-rec-figure\">$712<span class=\"ds-rec-per\">/mo</span></div></div><div class=\"ds-rec-benefit\"><span class=\"ds-rec-saved\">≈ $1,304 saved</span>estimated tax reduction this year</div></div><div class=\"ds-rec-foot\"><button class=\"ds-rec-toggle\">+ Show the math</button></div></div>",
+      "css": ".ds-rec { padding: 20px; border: 1px solid hsl(var(--primary) / 0.25); background: hsl(var(--secondary) / 0.6); border-radius: 16px; } .ds-rec-row { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; } .ds-rec-label { margin-bottom: 6px; font-family: 'Spline Sans Mono', monospace; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: hsl(var(--muted-foreground)); } .ds-rec-figure { font-family: 'Spline Sans Mono', monospace; font-variant-numeric: tabular-nums; font-size: 2.6rem; line-height: 1; font-weight: 600; color: hsl(var(--primary)); } .ds-rec-per { font-size: 0.62em; font-weight: 500; color: hsl(var(--muted-foreground)); } .ds-rec-benefit { max-width: 16rem; text-align: right; font-size: 14px; color: hsl(var(--muted-foreground)); } .ds-rec-saved { display: block; font-family: 'Spline Sans Mono', monospace; font-variant-numeric: tabular-nums; font-size: 16px; font-weight: 700; color: hsl(var(--success)); } .ds-rec-foot { margin-top: 16px; padding-top: 12px; border-top: 1px dashed hsl(var(--border)); } .ds-rec-toggle { background: none; border: none; padding: 0; font-size: 13px; font-weight: 700; color: hsl(var(--primary)); cursor: pointer; } .ds-rec-toggle:hover { text-decoration: underline; text-underline-offset: 4px; } .ds-rec-toggle:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }"
+    },
+    {
+      "name": "Earned Badge",
+      "kind": "chip",
+      "refersTo": "badge-earned",
+      "description": "Badge shelf pill; gold only when earned, dashed fog when not.",
+      "html": "<span class=\"ds-badge ds-badge--earned\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z\"/></svg>Shieldbearer</span> <span class=\"ds-badge ds-badge--unearned\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z\"/><path d=\"m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z\"/></svg>Juggernaut</span>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 9999px; font-size: 11px; font-weight: 600; } .ds-badge--earned { border: 1px solid hsl(var(--reward) / 0.5); background: hsl(var(--reward) / 0.15); color: hsl(var(--reward)); } .ds-badge--unearned { border: 1px dashed hsl(var(--border)); background: transparent; color: hsl(var(--muted-foreground) / 0.7); }"
+    },
+    {
+      "name": "Currency Input",
+      "kind": "input",
+      "description": "Mono tabular right-aligned dollar field with an absolute $ prefix; ring turns red on error.",
+      "html": "<span class=\"ds-input-wrap\"><span class=\"ds-input-prefix\">$</span><input class=\"ds-input-currency\" type=\"number\" placeholder=\"0\" value=\"4200\"></span>",
+      "css": ".ds-input-wrap { position: relative; display: inline-block; width: 128px; } .ds-input-prefix { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: hsl(var(--muted-foreground)); } .ds-input-currency { width: 100%; padding: 8px 12px 8px 24px; background: hsl(var(--secondary)); border: none; border-radius: 8px; font-family: 'Spline Sans Mono', monospace; font-variant-numeric: tabular-nums; font-weight: 700; text-align: right; color: hsl(var(--foreground)); caret-color: hsl(var(--primary)); } .ds-input-currency:focus { outline: none; box-shadow: 0 0 0 2px hsl(var(--primary) / 0.5); }"
+    },
+    {
+      "name": "Stacked Budget Bar",
+      "kind": "custom",
+      "description": "The whole paycheck in one pill: fog expenses, verdigris committed, striped pending, emerald free.",
+      "html": "<div class=\"ds-bar\"><div class=\"ds-bar-seg ds-bar-expenses\" style=\"width:45%\"></div><div class=\"ds-bar-seg ds-bar-committed\" style=\"width:25%\"></div><div class=\"ds-bar-seg ds-bar-pending\" style=\"width:12%\"></div><div class=\"ds-bar-seg ds-bar-free\" style=\"width:18%\"></div></div>",
+      "css": ".ds-bar { display: flex; height: 14px; width: 100%; overflow: hidden; border-radius: 9999px; border: 1px solid hsl(var(--border)); } .ds-bar-seg { height: 100%; transition: width 0.5s; } .ds-bar-expenses { background: hsl(var(--muted-foreground) / 0.3); } .ds-bar-committed { background: hsl(var(--primary)); } .ds-bar-pending { background: repeating-linear-gradient(45deg, hsl(var(--primary)) 0, hsl(var(--primary)) 4px, hsl(var(--primary) / 0.3) 4px, hsl(var(--primary) / 0.3) 8px); } .ds-bar-free { background: hsl(var(--success) / 0.25); }"
+    },
+    {
+      "name": "Milestone Toast",
+      "kind": "custom",
+      "description": "The one gold moment: reward-bordered toast with glow, gold icon chip, mono-caps status line.",
+      "html": "<div class=\"ds-toast\"><span class=\"ds-toast-icon\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z\"/></svg></span><div><span class=\"ds-toast-kicker\">Phase cleared · badge earned</span><span class=\"ds-toast-title\">Protect: Shieldbearer</span><span class=\"ds-toast-sub\">$1,150/mo locked into the plan</span></div></div>",
+      "css": ".ds-toast { display: flex; align-items: center; gap: 14px; max-width: 24rem; padding: 16px; background: hsl(var(--card)); border: 1px solid hsl(var(--reward) / 0.5); border-radius: 16px; box-shadow: 0 20px 60px -20px hsl(var(--reward) / 0.45); } .ds-toast-icon { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; flex-shrink: 0; border-radius: 9999px; border: 1px solid hsl(var(--reward) / 0.5); background: hsl(var(--reward) / 0.15); color: hsl(var(--reward)); } .ds-toast-kicker { display: block; font-family: 'Spline Sans Mono', monospace; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.16em; color: hsl(var(--reward)); } .ds-toast-title { display: block; font-family: 'Bricolage Grotesque', sans-serif; font-size: 16px; font-weight: 700; color: hsl(var(--foreground)); } .ds-toast-sub { display: block; font-size: 12px; color: hsl(var(--muted-foreground)); font-family: 'Spline Sans Mono', monospace; font-variant-numeric: tabular-nums; }"
+    },
+    {
+      "name": "Quest Rail Step",
+      "kind": "nav",
+      "description": "Phase-rail step row: marker circle on a 1px spine, active gets verdigris tint + halo, done gets emerald check.",
+      "html": "<div class=\"ds-rail\"><div class=\"ds-rail-step ds-rail-step--done\"><span class=\"ds-rail-dot ds-rail-dot--done\"><svg width=\"10\" height=\"10\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 6 9 17l-5-5\"/></svg></span><span>Starter fund</span><span class=\"ds-rail-amt ds-rail-amt--done\">$500/mo</span></div><div class=\"ds-rail-step ds-rail-step--active\"><span class=\"ds-rail-dot ds-rail-dot--active\"></span><span>Employer match</span></div><div class=\"ds-rail-step\"><span class=\"ds-rail-dot\"></span><span>High-interest debt</span></div></div>",
+      "css": ".ds-rail { margin-left: 5px; border-left: 1px solid hsl(var(--primary) / 0.4); padding-left: 14px; display: flex; flex-direction: column; gap: 2px; font-size: 13px; color: hsl(var(--foreground) / 0.8); } .ds-rail-step { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: 8px; border: 1px solid transparent; } .ds-rail-step--done { color: hsl(var(--muted-foreground)); } .ds-rail-step--active { background: hsl(var(--primary) / 0.1); border-color: hsl(var(--primary) / 0.3); font-weight: 600; color: hsl(var(--primary)); } .ds-rail-dot { display: flex; align-items: center; justify-content: center; width: 16px; height: 16px; flex-shrink: 0; border-radius: 9999px; border: 1px solid hsl(var(--border)); } .ds-rail-dot--done { border-color: hsl(var(--success)); background: hsl(var(--success)); color: hsl(var(--success-foreground)); } .ds-rail-dot--active { border-color: hsl(var(--primary)); box-shadow: 0 0 0 3px hsl(var(--primary) / 0.2); } .ds-rail-amt { margin-left: auto; font-family: 'Spline Sans Mono', monospace; font-variant-numeric: tabular-nums; font-size: 11px; } .ds-rail-amt--done { color: hsl(var(--success)); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Arcade Ledger",
+    "overview": "A game HUD laid over an accountant's ledger. The world is a single dark room: deep teal-ink ground with a faint 44px grid and a soft verdigris glow rising from the top edge, as if the board itself is lit. Every dollar is visible somewhere — the stacked budget bar accounts for the whole paycheck — and every computed number can show its arithmetic and cite its IRS source. The tone is confident and playful (phases, badges, Quest Log) but the numbers are dead serious: mono, tabular, cited, and labeled projected when they are. The build pins .dark on <html>; the light palette exists in :root for coherence but never ships. Color is rationed by meaning, not decoration: verdigris is the app's voice, and the other four hues are a strict semantic contract. The world explicitly refuses the pastel fintech card-stack and the emoji-as-reward default — rewards are minted gold badges with Lucide stroke icons, never emoji.",
+    "keyCharacteristics": [
+      "Dark-only teal-ink ground with a faint grid texture; browser chrome (selection, caret, range inputs, scrollbars, focus rings) is tokenized too",
+      "One accent voice (electric verdigris) plus four semantically locked hues: gold earned, emerald money-good, amber caution, red problems",
+      "Every currency figure is mono + tabular with an explicit cadence suffix (/mo, /yr)",
+      "Generous radii (16-24px), soft colored glows instead of hard shadows, spring-based motion that respects reduced-motion globally",
+      "Micro-labels in uppercase tracked mono are the ledger's annotation layer"
+    ],
+    "rules": [
+      { "name": "The Earned Gold Rule", "body": "Gold renders only on things the player has earned: badge pills, the milestone toast, the finale. It never decorates navigation, buttons, or headers. Unearned badges are dashed-border fog, not dim gold.", "section": "colors" },
+      { "name": "The Semantic Lock Rule", "body": "Emerald = money-good fact, amber = caution/projected, red = genuine problem, verdigris = the app talking. No hue substitutes for another, and none is used for mood.", "section": "colors" },
+      { "name": "The Tinted-Fill Rule", "body": "Semantic hues appear as tinted fills with matching translucent borders (color/10-15 fill, color/25-50 border, full-strength text/icon) — a solid semantic background is reserved for primary/success action buttons and completed checkmarks.", "section": "colors" },
+      { "name": "The One Currency Rule", "body": "Every dollar figure renders through the Currency component: Spline Sans Mono, tabular-nums, rounded to whole dollars with en-US separators, true minus sign (−), and an explicit smaller muted cadence suffix (/mo, /yr) when recurring. Dollar amounts inside plain label strings are wrapped in mono/tabular spans to match.", "section": "typography" },
+      { "name": "The Mono-Caps Annotation Rule", "body": "Small structural labels are always mono, uppercase, wide-tracked, 10-11px. This is the system's only small-caps device; there are no sans-serif kickers.", "section": "typography" },
+      { "name": "The Colored-Glow Rule", "body": "Shadows are always tinted by a token (--primary, --reward, or the background itself), always large-radius with negative spread, never hard-edged or offset-styled. If an element doesn't mean anything, it doesn't glow.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do route every dollar figure through Currency (mono, tabular, whole dollars, explicit /mo or /yr, true − for negatives).",
+      "Do route every computed recommendation through RecommendationBlock, ending the math table with the free-budget cap row and citing a source with the projected flag when the year is unofficial.",
+      "Do derive step order, phase structure, and badge names from src/shared/config/flow.ts — never redeclare them.",
+      "Do use tinted fills with matching translucent borders for semantic states, and dashed borders for not-yet states.",
+      "Do honor reduced motion everywhere: the global media query zeroes animation/transition durations, and canvas effects check useReducedMotion before drawing.",
+      "Do keep user data sessionStorage-only and say so; /sources shows the player exactly what the browser holds."
+    ],
+    "donts": [
+      "Don't use gold for anything unearned — no gold headers, buttons, accents, or hover states.",
+      "Don't use emerald for generic positivity, amber outside caution/projected, or red outside genuine problems.",
+      "Don't use emoji as icons or rewards; the icon system is Lucide strokes in tinted chips.",
+      "Don't ship neutral or hard-offset drop shadows; shadows are large soft glows tinted by a meaning-bearing token.",
+      "Don't render proportional-figure or sans-serif currency, or omit the cadence suffix on recurring amounts.",
+      "Don't build for light mode; .dark is pinned and the light :root palette is unshipped scaffolding."
+    ]
+  }
+}

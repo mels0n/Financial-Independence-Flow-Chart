@@ -32,5 +32,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
             changeFrequency: "monthly",
             priority: 0.6,
         },
+        {
+            url: "https://financial-independence.melson.us/sources",
+            lastModified: new Date(),
+            changeFrequency: "monthly",
+            priority: 0.6,
+        },
     ];
 }

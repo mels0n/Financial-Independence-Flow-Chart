@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "codex-grid-background",
+        "value": "*",
+        "files": [
+          "src/app/globals.css"
+        ],
+        "createdAt": "2026-09-08T02:13:06.306Z",
+        "reason": "Claude: quest-board map surface in the owner-approved direction (mockup signed off 2026-09-07); grid is the game world's ground, not decoration"
+      }
+    ]
+  }
+}

@@ -4,75 +4,90 @@
 
 @layer base {
     :root {
-        --background: 210 20% 98%;
-        /* Soft cool white */
-        --foreground: 222 47% 11%;
-        /* Slate 900 */
+        /* Light palette (unused while the app pins .dark on <html>, kept coherent anyway) */
+        --background: 168 25% 96%;
+        --foreground: 195 45% 10%;
 
         --card: 0 0% 100%;
-        --card-foreground: 222 47% 11%;
+        --card-foreground: 195 45% 10%;
 
         --popover: 0 0% 100%;
-        --popover-foreground: 222 47% 11%;
+        --popover-foreground: 195 45% 10%;
 
-        --primary: 221 83% 53%;
-        /* Blue 600 */
-        --primary-foreground: 210 40% 98%;
+        /* Verdigris: the app's voice */
+        --primary: 168 70% 32%;
+        --primary-foreground: 168 40% 97%;
 
-        --secondary: 210 40% 96.1%;
-        --secondary-foreground: 222 47% 11.2%;
+        --secondary: 172 20% 92%;
+        --secondary-foreground: 195 45% 12%;
 
-        --muted: 210 40% 96.1%;
-        --muted-foreground: 215.4 16.3% 46.9%;
+        --muted: 172 20% 92%;
+        --muted-foreground: 190 12% 40%;
 
-        --accent: 210 40% 96.1%;
-        --accent-foreground: 222 47% 11.2%;
+        --accent: 172 20% 92%;
+        --accent-foreground: 195 45% 12%;
 
-        --destructive: 0 84.2% 60.2%;
-        --destructive-foreground: 210 40% 98%;
+        --destructive: 6 78% 50%;
+        --destructive-foreground: 0 0% 100%;
 
-        --border: 214.3 31.8% 91.4%;
-        --input: 214.3 31.8% 91.4%;
-        --ring: 221 83% 53%;
+        --border: 175 18% 86%;
+        --input: 175 18% 86%;
+        --ring: 168 70% 32%;
 
         --surface: 0 0% 100%;
-        --surface-variant: 210 20% 94%;
-        /* Soft Grey/Blue variant */
+        --surface-variant: 170 20% 93%;
 
-        --radius: 1.5rem;
+        /* Semantic contract: gold is earned, emerald is money-good, amber is caution */
+        --reward: 42 78% 42%;
+        --reward-foreground: 40 90% 96%;
+        --success: 152 60% 34%;
+        --success-foreground: 150 60% 97%;
+        --warning: 35 85% 38%;
+        --warning-foreground: 40 90% 97%;
+
+        --radius: 1.25rem;
     }
 
     .dark {
-        --background: 222 47% 11%;
-        --foreground: 210 40% 98%;
+        /* The committed world: deep teal-ink arcade ledger */
+        --background: 195 40% 7%;
+        --foreground: 165 25% 92%;
 
-        --card: 222 47% 11%;
-        --card-foreground: 210 40% 98%;
+        --card: 194 34% 10%;
+        --card-foreground: 165 25% 92%;
 
-        --popover: 222 47% 11%;
-        --popover-foreground: 210 40% 98%;
+        --popover: 194 34% 11%;
+        --popover-foreground: 165 25% 92%;
 
-        --primary: 226 90% 75%;
-        --primary-foreground: 222.2 47.4% 11.2%;
+        /* Electric verdigris */
+        --primary: 165 75% 52%;
+        --primary-foreground: 195 50% 8%;
 
-        --secondary: 217.2 32.6% 17.5%;
-        --secondary-foreground: 210 40% 98%;
+        --secondary: 192 28% 15%;
+        --secondary-foreground: 165 25% 92%;
 
-        --muted: 217.2 32.6% 17.5%;
-        --muted-foreground: 215 20.2% 65.1%;
+        --muted: 192 28% 15%;
+        --muted-foreground: 180 12% 62%;
 
-        --accent: 217.2 32.6% 17.5%;
-        --accent-foreground: 210 40% 98%;
+        --accent: 192 28% 15%;
+        --accent-foreground: 165 25% 92%;
 
-        --destructive: 0 62.8% 30.6%;
-        --destructive-foreground: 210 40% 98%;
+        --destructive: 6 80% 62%;
+        --destructive-foreground: 195 50% 8%;
 
-        --border: 217.2 32.6% 17.5%;
-        --input: 217.2 32.6% 17.5%;
-        --ring: 212.7 26.8% 83.9%;
+        --border: 191 26% 18%;
+        --input: 191 26% 18%;
+        --ring: 165 75% 52%;
 
-        --surface: 222 47% 11%;
-        --surface-variant: 217 32% 17%;
+        --surface: 194 34% 10%;
+        --surface-variant: 192 28% 15%;
+
+        --reward: 43 90% 62%;
+        --reward-foreground: 42 90% 10%;
+        --success: 152 65% 55%;
+        --success-foreground: 152 60% 8%;
+        --warning: 35 92% 62%;
+        --warning-foreground: 35 90% 10%;
     }
 }
 
@@ -83,5 +98,65 @@
 
     body {
         @apply bg-background text-foreground font-sans;
+    }
+
+    /* The browser chrome carries the design too */
+    ::selection {
+        background: hsl(var(--primary) / 0.35);
+        color: hsl(var(--foreground));
+    }
+
+    :focus-visible {
+        outline: 2px solid hsl(var(--ring));
+        outline-offset: 2px;
+    }
+
+    * {
+        scrollbar-width: thin;
+        scrollbar-color: hsl(var(--border)) transparent;
+    }
+
+    input {
+        caret-color: hsl(var(--primary));
+    }
+
+    /* Range inputs join the token system instead of shipping browser blue */
+    input[type="range"] {
+        accent-color: hsl(var(--primary));
+    }
+}
+
+@layer utilities {
+    .tabular {
+        font-variant-numeric: tabular-nums;
+    }
+
+    /* The budget bar's "this step" segment: proposed but not yet committed */
+    .stripe-pending {
+        background: repeating-linear-gradient(45deg,
+                hsl(var(--primary)) 0,
+                hsl(var(--primary)) 4px,
+                hsl(var(--primary) / 0.3) 4px,
+                hsl(var(--primary) / 0.3) 8px);
+    }
+
+    /* Subtle grid texture for the quest board ground */
+    .quest-ground {
+        background-image:
+            radial-gradient(ellipse 80% 50% at 50% -10%, hsl(var(--primary) / 0.08), transparent),
+            linear-gradient(hsl(var(--border) / 0.35) 1px, transparent 1px),
+            linear-gradient(90deg, hsl(var(--border) / 0.35) 1px, transparent 1px);
+        background-size: 100% 100%, 44px 44px, 44px 44px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
     }
 }

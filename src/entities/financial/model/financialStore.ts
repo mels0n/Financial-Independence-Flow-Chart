@@ -1,24 +1,8 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { FLOW_ORDER, getFlowStep, getStepIndex, type PhaseId, type StepId } from '@/shared/config/flow';
 
-export type StepId =
-    | 'year-selection'
-    | 'income'
-    | 'budget'
-    | 'emergency-fund'
-    | 'match-employer'
-    | 'debt-payoff'
-    | 'hsa'
-    | 'ira'
-    | 'max-401k'
-    | 'moderate-debt'
-    | 'goals'
-    | 'education'
-    | 'mega-backdoor'
-    | 'taxable'
-    | 'low-interest-debt'
-    | 'emergency-fund-full'
-    | 'completed'
-    | 'budget-exhausted';
+export type { StepId };
 
 export type TaxYear = string;
 export type FilingStatus = 'single' | 'married_joint' | 'married_separate' | 'head_household';
@@ -51,6 +35,8 @@ interface FinancialState {
     profile: FinancialProfile;
     allocations: Record<string, number>;
     actionItems: ActionItem[];
+    /** Phase whose completion is currently being celebrated (drives the milestone toast). Not persisted. */
+    celebratingPhase: PhaseId | null;
 
     // Actions
     setYear: (year: TaxYear) => void;
@@ -58,6 +44,7 @@ interface FinancialState {
     setAllocation: (stepId: string, amount: number) => void;
     addActionItem: (item: Omit<ActionItem, 'completed'>) => void;
     toggleActionItem: (id: string) => void;
+    clearCelebration: () => void;
 
     // Navigation
     nextStep: () => void;
@@ -69,8 +56,6 @@ interface FinancialState {
 }
 
 export const DEFAULT_YEAR = '2026';
-
-import { persist, createJSONStorage } from 'zustand/middleware';
 
 export const useFinancialStore = create<FinancialState>()(
     persist(
@@ -93,17 +78,12 @@ export const useFinancialStore = create<FinancialState>()(
             },
             allocations: {},
             actionItems: [],
+            celebratingPhase: null,
 
             getRemainingBudget: () => {
                 const { profile, allocations } = get();
-                // Start with Income
-                let remainder = profile.monthlyIncome;
-                // Subtract Expenses (Basic Budget)
-                remainder -= profile.monthlyExpenses;
-
-                // Subtract allocations
                 const totalAllocated = Object.values(allocations).reduce((acc, val) => acc + val, 0);
-                return remainder - totalAllocated;
+                return profile.monthlyIncome - profile.monthlyExpenses - totalAllocated;
             },
 
             setAllocation: (stepId, amount) => set((state) => ({
@@ -117,7 +97,6 @@ export const useFinancialStore = create<FinancialState>()(
             })),
 
             addActionItem: (item) => set((state) => {
-                // Prevent duplicates
                 if (state.actionItems.some(i => i.id === item.id)) return state;
                 return { actionItems: [...state.actionItems, { ...item, completed: false }] };
             }),
@@ -128,6 +107,8 @@ export const useFinancialStore = create<FinancialState>()(
                 )
             })),
 
+            clearCelebration: () => set({ celebratingPhase: null }),
+
             goToStep: (step) => set((state) => ({
                 history: [...state.history, state.currentStep],
                 currentStep: step
@@ -137,14 +118,8 @@ export const useFinancialStore = create<FinancialState>()(
                 const newHistory = [...state.history];
                 const prev = newHistory.pop();
                 if (prev) {
-                    // CLEAR STATE for the step we are going back TO.
-                    // This ensures that if the user changes their mind, we don't have stale allocations/actions
-                    // from their previous pass through this step.
-                    // We also remove actions from the step we are LEAVING (currentStep) just in case?
-                    // No, usually we want to clear the *source* of the data. 
-                    // If I go back to Emergency Fund, I want to clear the "Emergency Fund Allocation"
-                    // and "Emergency Fund Action Item" so I can re-enter them.
-
+                    // Clear the state that belongs to the step we return to, so the user
+                    // can re-enter it without stale allocations or action items.
                     const newAllocations = { ...state.allocations };
                     delete newAllocations[prev];
 
@@ -154,7 +129,8 @@ export const useFinancialStore = create<FinancialState>()(
                         currentStep: prev,
                         history: newHistory,
                         allocations: newAllocations,
-                        actionItems: newActionItems
+                        actionItems: newActionItems,
+                        celebratingPhase: null,
                     };
                 }
                 return state;
@@ -162,50 +138,58 @@ export const useFinancialStore = create<FinancialState>()(
 
             nextStep: () => {
                 const { currentStep, getRemainingBudget } = get();
-                const flow: StepId[] = [
-                    'year-selection', 'income', 'budget', 'emergency-fund',
-                    'match-employer', 'debt-payoff', 'emergency-fund-full', 'hsa', 'ira',
-                    'moderate-debt', 'max-401k', 'goals',
-                    'education', 'mega-backdoor', 'low-interest-debt', 'taxable',
-                    'completed'
-                ];
-
                 const budget = getRemainingBudget();
-                const currentIndex = flow.indexOf(currentStep);
+                const currentIndex = FLOW_ORDER.indexOf(currentStep);
 
-                // If we simply check <= 0, we might stop them before they can even enter the stage where they spend 0.
-                // We really want to stop them if they try to ADVANCE past an investment step with $0 left?
-                // Let's be lenient: Any positive budget allows progress. 
-                // If 0, only allow progress if we are NOT in an "allocation" phase?
-                // Actually simplest logic: If budget <= 0, we force them to 'budget-exhausted' UNLESS they are in the setup phases (0-2).
+                // Once past the setup phases, an empty budget ends the run: the player
+                // has allocated everything they can this year.
                 if (currentIndex > 3 && budget <= 0 && currentStep !== 'completed') {
+                    // Leaving a phase's last step still mints its badge, even when the
+                    // budget runs out on that step.
+                    const leavingPhase = getFlowStep(currentStep)?.phase ?? null;
+                    const wouldEnter = FLOW_ORDER[currentIndex + 1];
+                    const enteringPhase = wouldEnter && wouldEnter !== 'completed' ? getFlowStep(wouldEnter)?.phase ?? null : null;
+                    const crossedPhase = leavingPhase !== null && leavingPhase !== enteringPhase ? leavingPhase : null;
+
                     set((state) => ({
                         history: [...state.history, state.currentStep],
-                        currentStep: 'budget-exhausted'
+                        currentStep: 'budget-exhausted',
+                        celebratingPhase: crossedPhase ?? state.celebratingPhase,
                     }));
                     return;
                 }
 
-                const idx = flow.indexOf(currentStep);
-                if (idx !== -1 && idx < flow.length - 1) {
+                if (currentIndex !== -1 && currentIndex < FLOW_ORDER.length - 1) {
+                    const next = FLOW_ORDER[currentIndex + 1];
+                    // Crossing into a new phase completes the old one: fire the milestone.
+                    // Deliberately silent when next === 'completed': the finale screen is
+                    // the celebration there, so the optimize-phase toast would double up.
+                    const leavingPhase = getFlowStep(currentStep)?.phase ?? null;
+                    const enteringPhase = next === 'completed' ? null : getFlowStep(next)?.phase ?? null;
+                    const crossedPhase = leavingPhase !== null && leavingPhase !== enteringPhase && next !== 'completed'
+                        ? leavingPhase
+                        : null;
+
                     set((state) => ({
                         history: [...state.history, state.currentStep],
-                        currentStep: flow[idx + 1]
+                        currentStep: next,
+                        celebratingPhase: crossedPhase ?? state.celebratingPhase,
                     }));
                 }
             },
-
-            reset: () => {
-                sessionStorage.removeItem('financial-quest-storage');
-                window.location.reload();
-            }
         }),
         {
-            name: 'financial-quest-storage', // unique name
-            storage: createJSONStorage(() => sessionStorage), // Use sessionStorage so it clears on close, OR localStorage if user wants "refresh" safety. User said: "if I close the browser is resets". That usually implies sessionStorage. BUT user also said "State of the answers need to be held in session". SessionStorage does that.
-            // Wait, "if I close the browser is resets" could mean they WANT it to reset, or they observed it resetting.
-            // "hold in session so if I refresh the data stays".
-            // sessionStorage survives refresh. It clears on tab/window close. This matches the request perfectly.
+            name: 'financial-quest-storage',
+            // sessionStorage: survives refresh, clears when the tab closes.
+            storage: createJSONStorage(() => sessionStorage),
+            partialize: (state) => ({
+                currentStep: state.currentStep,
+                history: state.history,
+                selectedYear: state.selectedYear,
+                profile: state.profile,
+                allocations: state.allocations,
+                actionItems: state.actionItems,
+            }),
         }
     ));
 

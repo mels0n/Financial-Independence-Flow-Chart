@@ -22,12 +22,11 @@ export const useBudgetLogic = () => {
         setMode("input");
 
         // Action Item for later refinement
-        if (typeof useFinancialStore.getState().addActionItem === 'function') {
-            useFinancialStore.getState().addActionItem({
-                id: 'create-budget',
-                label: 'Create a Detailed Budget (You guessed earlier)'
-            });
-        }
+        useFinancialStore.getState().addActionItem({
+            id: 'create-budget',
+            stepId: 'budget',
+            label: 'Create a Detailed Budget (You guessed earlier)'
+        });
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -48,14 +47,14 @@ export const useBudgetLogic = () => {
     let message = "";
 
     if (ratio <= 50) {
-        message = "You're living well within your means! This leaves plenty for savings.";
-        sentiment = "🌟 Excellent";
+        message = "You're living well within your means. That leaves serious firepower for the steps ahead.";
+        sentiment = "Excellent";
     } else if (ratio <= 75) {
-        message = "This is a healthy balance, but keep an eye on discretionary spending.";
-        sentiment = "✅ Good";
+        message = "A healthy balance. Keep an eye on discretionary spending and this quest gets easier every year.";
+        sentiment = "Good";
     } else {
-        message = "Your expenses are high relative to your income. We might need to look at budgeting strategies.";
-        sentiment = "⚠️ Tight";
+        message = "Expenses are high relative to income, so the moves ahead will be tighter. Budgeting strategies can widen the gap.";
+        sentiment = "Tight";
     }
 
     return {

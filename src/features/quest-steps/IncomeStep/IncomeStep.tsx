@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useFinancialStore, FilingStatus } from "@/entities/financial/model/financialStore";
 import { ConversationalCard } from "@/shared/ui/ConversationalCard/ConversationalCard";
-import { ArrowRight, Users, User, ScrollText } from "lucide-react";
+import { ArrowRight, Users, User, Wallet } from "lucide-react";
 
 export function IncomeStep() {
     const { setProfileBase, nextStep } = useFinancialStore();
@@ -31,8 +31,9 @@ export function IncomeStep() {
     if (stepPhase === "status") {
         return (
             <ConversationalCard
-                title="Tax Profile"
-                description="To minimize your taxes, how will you be filing?"
+                title="Tax profile"
+                description="Contribution limits double for some accounts when you file jointly. How will you be filing?"
+                icon={Wallet}
             >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <button
@@ -40,12 +41,12 @@ export function IncomeStep() {
                         className="p-6 bg-card border-2 border-border rounded-2xl hover:border-primary hover:bg-primary/5 transition-all text-left group"
                     >
                         <div className="flex items-center gap-3 mb-2">
-                            <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform">
-                                <User className="w-5 h-5" />
-                            </div>
+                            <span className="p-2 rounded-lg border border-primary/30 bg-primary/10 text-primary group-hover:scale-110 transition-transform">
+                                <User className="w-5 h-5" aria-hidden />
+                            </span>
                             <span className="font-bold text-lg text-foreground">Single</span>
                         </div>
-                        <p className="text-sm text-muted-foreground">Or Head of Household</p>
+                        <p className="text-sm text-muted-foreground">Or head of household</p>
                     </button>
 
                     <button
@@ -53,12 +54,12 @@ export function IncomeStep() {
                         className="p-6 bg-card border-2 border-border rounded-2xl hover:border-primary hover:bg-primary/5 transition-all text-left group"
                     >
                         <div className="flex items-center gap-3 mb-2">
-                            <div className="p-2 bg-rose-100 dark:bg-rose-900/30 rounded-lg text-rose-600 dark:text-rose-400 group-hover:scale-110 transition-transform">
-                                <Users className="w-5 h-5" />
-                            </div>
+                            <span className="p-2 rounded-lg border border-primary/30 bg-primary/10 text-primary group-hover:scale-110 transition-transform">
+                                <Users className="w-5 h-5" aria-hidden />
+                            </span>
                             <span className="font-bold text-lg text-foreground">Married</span>
                         </div>
-                        <p className="text-sm text-muted-foreground">Filing Jointly</p>
+                        <p className="text-sm text-muted-foreground">Filing jointly</p>
                     </button>
                 </div>
             </ConversationalCard>
@@ -67,35 +68,40 @@ export function IncomeStep() {
 
     return (
         <ConversationalCard
-            title={filingStatus === "married_joint" ? "Household Income" : "Your Income"}
+            title={filingStatus === "married_joint" ? "Household income" : "Your income"}
             description={
                 filingStatus === "married_joint"
-                    ? (<span>What is the total combined <strong>MONTHLY</strong> take-home pay for both of you?</span>)
-                    : (<span>What is your approximate <strong>MONTHLY</strong> take-home pay?</span>)
+                    ? (<span>Total combined <strong className="text-foreground">MONTHLY</strong> take-home pay for both of you. This is the budget the whole quest allocates.</span>)
+                    : (<span>Your approximate <strong className="text-foreground">MONTHLY</strong> take-home pay. This is the budget the whole quest allocates.</span>)
             }
+            icon={Wallet}
         >
-            <form onSubmit={handleSubmit} className="flex gap-4 items-center">
-                <div className="relative flex-1">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl text-muted-foreground font-medium">$</span>
-                    <input
-                        type="number"
-                        value={income}
-                        onChange={(e) => setIncome(e.target.value)}
-                        className="w-full pl-10 pr-4 py-4 text-2xl font-bold text-foreground bg-secondary rounded-2xl border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                        placeholder="4,000"
-                        autoFocus
-                    />
-                    <p className="absolute -bottom-6 left-1 text-xs text-muted-foreground font-medium">
-                        * Please enter monthly amount, not yearly
-                    </p>
+            <form onSubmit={handleSubmit} className="flex flex-col gap-2">
+                <div className="flex gap-4 items-center">
+                    <div className="relative flex-1">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl text-muted-foreground font-medium" aria-hidden>$</span>
+                        <input
+                            type="number"
+                            value={income}
+                            onChange={(e) => setIncome(e.target.value)}
+                            aria-label="Monthly take-home pay in dollars"
+                            className="w-full pl-10 pr-4 py-4 text-2xl font-mono tabular font-bold text-foreground bg-secondary rounded-2xl border border-border focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                            placeholder="4,000"
+                            autoFocus
+                        />
+                    </div>
+                    <button
+                        type="submit"
+                        disabled={!income}
+                        aria-label="Continue"
+                        className="p-4 bg-primary text-primary-foreground rounded-2xl transition-all hover:brightness-110 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        <ArrowRight className="w-7 h-7" aria-hidden />
+                    </button>
                 </div>
-                <button
-                    type="submit"
-                    disabled={!income}
-                    className="p-4 bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-105 active:scale-95"
-                >
-                    <ArrowRight className="w-8 h-8" />
-                </button>
+                <p className="text-xs text-muted-foreground font-medium pl-1">
+                    Monthly amount, not yearly. After taxes.
+                </p>
             </form>
         </ConversationalCard>
     );

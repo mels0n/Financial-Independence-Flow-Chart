@@ -1,111 +1,99 @@
-
 "use client";
 
 import { useFinancialStore } from "@/entities/financial/model/financialStore";
 import { ConversationalCard } from "@/shared/ui/ConversationalCard/ConversationalCard";
-import { FINANCIAL_CONSTANTS, getFinancialConstants } from "@/shared/config/financial-constants";
+import { getFinancialConstants, getYearMeta } from "@/shared/config/financial-constants";
 import { useState } from "react";
-import { ArrowRight, PiggyBank, TrendingUp } from "lucide-react";
+import { ArrowRight, Landmark, AlertTriangle, TrendingUp, ExternalLink } from "lucide-react";
 import { JargonTerm } from "@/shared/ui/JargonTerm/JargonTerm";
+import { RecommendationBlock } from "@/shared/ui/RecommendationBlock/RecommendationBlock";
+import { Currency } from "@/shared/ui/Currency/Currency";
 import { cn } from "@/shared/lib/utils";
 
 export function IraStep() {
     const { selectedYear, nextStep, profile, setAllocation, getRemainingBudget, setProfileBase } = useFinancialStore();
     const limits = getFinancialConstants(selectedYear).ira;
+    const yearMeta = getYearMeta(selectedYear);
     const [alreadyContributed, setAlreadyContributed] = useState(0);
 
     const remainingBudget = getRemainingBudget();
-    const limit = profile.filingStatus === 'married_joint' ? limits.limit * 2 : limits.limit;
+    const isMarried = profile.filingStatus === 'married_joint';
+    const limit = isMarried ? limits.limit * 2 : limits.limit;
 
-    // Logic
-    const remainingToMax = Math.max(0, limit - alreadyContributed);
-    const monthsRemaining = 12; // Simplified
+    const rawRemaining = limit - alreadyContributed;
+    const remainingToMax = Math.max(0, rawRemaining);
     const monthlyToMax = Math.round(remainingToMax / 12);
-
-    // We recommend the LESSER of: What they have left in budget, OR what they have left to max IRA (logic unchanged)
     const recommended = Math.min(remainingBudget, monthlyToMax);
 
-    const isOverContributed = remainingToMax < 0;
-    const isMaxed = remainingToMax <= 0;
+    const isOverContributed = rawRemaining < 0;
+    const isMaxed = rawRemaining <= 0;
 
-    // Lump Sum Logic
     const excessCash = profile.excessCash || 0;
     const canLumpSum = !isMaxed && excessCash >= remainingToMax;
 
+    const handleNext = () => {
+        if (profile.monthlyIncome <= 0) {
+            alert("Wait! You must have 'Earned Income' to contribute to an IRA.");
+            return;
+        }
+
+        if (canLumpSum) {
+            setProfileBase({ excessCash: excessCash - remainingToMax });
+            useFinancialStore.getState().addActionItem({
+                id: 'ira-lump-sum',
+                stepId: 'ira',
+                label: `Transfer $${remainingToMax.toLocaleString()} from Savings to IRA(s)`
+            });
+            nextStep();
+            return;
+        }
+
+        if (!isMaxed && recommended > 0) {
+            setAllocation('ira', recommended);
+            useFinancialStore.getState().addActionItem({
+                id: 'open-ira',
+                stepId: 'ira',
+                label: `Maximize IRA: Contribute $${recommended.toLocaleString()}/mo ($${remainingToMax.toLocaleString()} remaining)`
+            });
+        }
+        nextStep();
+    };
+
     return (
         <ConversationalCard
-            title={isMaxed ? "IRAs Maxed! 🌟" : "The Final Foundation 🏛️"}
+            title={isMaxed ? "IRA: maxed" : "The final foundation"}
             description={
-                profile.filingStatus === 'married_joint'
-                    ? "Since you are married, you can contribute to TWO IRAs (yours and your spouse's). IMPORTANT: These must be separate accounts (Individual Retirement Account), not one joint account."
-                    : "After the match, debts, and HSA, your next best dollar goes into an IRA (Individual Retirement Account)."
+                isMarried
+                    ? "Married filing jointly means TWO IRAs (yours and your spouse's). They must be separate accounts; Individual is in the name."
+                    : "After the match, the fires, and the HSA, your next best dollar goes into an IRA (Individual Retirement Account)."
             }
+            icon={Landmark}
             mode="advice"
         >
-            <div className="space-y-6">
-                <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl flex gap-3 text-sm text-amber-900 dark:text-amber-100">
-                    <div className="shrink-0 mt-1">⚠️</div>
-                    <div>
-                        <strong>Critical Warning:</strong> An IRA is just a "bucket". Putting money in is step 1. You MUST log in and invest that money (e.g., into a Target Date Index Fund). If you don't, it sits in cash doing nothing!
-                    </div>
+            <div className="space-y-5">
+                <div className="p-4 bg-warning/10 border border-warning/30 rounded-xl flex gap-3 text-sm">
+                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden />
+                    <p className="text-foreground/90">
+                        <strong>An IRA is just a bucket.</strong> Putting money in is step 1. You must then log in and
+                        invest it (a target-date index fund is the classic pick), or it sits in cash doing nothing.
+                    </p>
                 </div>
 
-                {!isMaxed && (
-                    <div className="p-6 bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl text-center relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-2 opacity-10">
-                            <PiggyBank className="w-24 h-24" />
-                        </div>
-                        <p className="text-slate-500 dark:text-slate-400 mb-2">{selectedYear} Combined Limit</p>
-                        <p className="text-5xl font-bold text-slate-900 dark:text-white tracking-tight">${limit.toLocaleString()}</p>
-                        <div className="flex flex-col gap-1 mt-2">
-                            <p className="text-slate-400 text-sm">(${limits.limit.toLocaleString()} × 2 people)</p>
-                            <p className="text-slate-400 text-xs">+$1,000 catch-up per person if 50+</p>
-                        </div>
-                    </div>
-                )}
-
-                {/* Spousal IRA Info (MFJ Only) */}
-                {profile.filingStatus === 'married_joint' && (
-                    <div className="p-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-xl">
-                        <h4 className="font-bold text-purple-900 dark:text-purple-100 flex items-center gap-2">
-                            💍 Spousal IRA Opportunity
-                        </h4>
-                        <div className="text-sm text-purple-800 dark:text-purple-200 mt-2 space-y-2">
-                            <p>
-                                Since you are married filing jointly, <strong>both spouses</strong> can contribute to their own separate IRA (Total ${limit.toLocaleString()}), even if one spouse does not work!
-                            </p>
-                            <p>
-                                As long as the <strong>household</strong> earned income covers the total contributions, the non-working spouse is eligible.
-                            </p>
-                            <div className="text-xs pt-1">
-                                <a
-                                    href="https://www.irs.gov/publications/p590a#en_US_2023_publink1000230412"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="underline hover:text-purple-950 dark:hover:text-purple-300"
-                                >
-                                    Source: IRS Publication 590-A
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* Already Contributed Input */}
-                <div className="p-4 border border-border rounded-xl flex items-center justify-between bg-card">
+                <div className="p-4 border border-border rounded-xl flex items-center justify-between gap-4 bg-card">
                     <div>
-                        <label className="text-sm font-medium text-foreground">Already contributed this year (or setup to contribute)?</label>
-                        <p className="text-xs text-muted-foreground">{selectedYear} contributions only</p>
+                        <label htmlFor="ira-contributed" className="text-sm font-medium text-foreground">Already contributed this year?</label>
+                        <p className="text-xs text-muted-foreground">{selectedYear} contributions only{isMarried ? ", both spouses combined" : ""}</p>
                     </div>
-                    <div className="relative w-32">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                    <div className="relative w-32 shrink-0">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden>$</span>
                         <input
+                            id="ira-contributed"
                             type="number"
                             value={alreadyContributed || ''}
                             onChange={(e) => setAlreadyContributed(Number(e.target.value))}
                             className={cn(
-                                "w-full pl-6 pr-3 py-2 bg-secondary rounded-lg font-bold text-right focus:outline-none focus:ring-2",
-                                isOverContributed ? "text-red-500 border-red-500 ring-red-500 focus:ring-red-500" : "focus:ring-primary/50 text-foreground"
+                                "w-full pl-6 pr-3 py-2 bg-secondary rounded-lg font-mono tabular font-bold text-right focus:outline-none focus:ring-2",
+                                isOverContributed ? "text-destructive focus:ring-destructive" : "text-foreground focus:ring-primary/50"
                             )}
                             placeholder="0"
                         />
@@ -113,108 +101,131 @@ export function IraStep() {
                 </div>
 
                 {isOverContributed && (
-                    <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl flex items-start gap-3">
-                        <div className="text-2xl">🚨</div>
+                    <div className="p-4 bg-destructive/10 border border-destructive/40 rounded-xl flex items-start gap-3">
+                        <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-destructive" aria-hidden />
                         <div>
-                            <h4 className="font-bold text-red-800 dark:text-red-200">Over-Contribution Warning</h4>
-                            <p className="text-sm text-red-700 dark:text-red-300">
-                                You have exceeded the limit by <strong>${Math.abs(remainingToMax).toLocaleString()}</strong>.
-                                You must withdraw the excess before tax time to avoid penalties.
+                            <h4 className="font-bold text-destructive">Over-contribution warning</h4>
+                            <p className="text-sm text-foreground/90">
+                                You have exceeded the limit by <Currency value={Math.abs(rawRemaining)} className="text-sm font-bold" />.
+                                Withdraw the excess before tax time to avoid penalties.
                             </p>
                         </div>
                     </div>
                 )}
 
                 {!isMaxed && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                        <div className="p-4 bg-purple-50 dark:bg-purple-900/20 text-purple-900 dark:text-purple-200 rounded-xl border border-purple-100 dark:border-purple-900">
-                            <span className="font-bold block mb-1">Roth IRA</span>
-                            Pay tax now, tax-free forever. Best if you expect to be richer later.
+                    <RecommendationBlock
+                        amount={canLumpSum ? remainingToMax : recommended}
+                        per={canLumpSum ? "once" : "mo"}
+                        label={canLumpSum ? "Fund from surplus cash" : "Recommended"}
+                        benefit={
+                            canLumpSum
+                                ? <span>Your emergency-fund surplus covers the whole {selectedYear} contribution today.</span>
+                                : <span>Fills your remaining <Currency value={remainingToMax} className="text-sm font-bold text-foreground" /> of {selectedYear} IRA space.</span>
+                        }
+                        math={[
+                            {
+                                label: isMarried ? `${selectedYear} limit ($${limits.limit.toLocaleString()} × 2 spouses)` : `${selectedYear} IRA limit`,
+                                value: `$${limit.toLocaleString()}`
+                            },
+                            { label: "Already contributed", value: `− $${alreadyContributed.toLocaleString()}` },
+                            { label: "Spread across 12 months", value: "÷ 12" },
+                            { label: "Monthly to hit the max", value: `$${monthlyToMax.toLocaleString()}`, total: true },
+                            { label: "Your free budget (the cap)", value: `$${remainingBudget.toLocaleString()}` },
+                        ]}
+                        assumptions={`Catch-up if 50+: an extra $${limits.catchUp.toLocaleString()} per person, not included above. You can also fund a year's IRA until that year's tax deadline.`}
+                        source={{ ...yearMeta.sources.ira, projected: yearMeta.status === "projected" }}
+                    >
+                        <button
+                            onClick={handleNext}
+                            disabled={!canLumpSum && recommended <= 0}
+                            className={cn(
+                                "w-full p-4 rounded-2xl transition-all hover:brightness-110 active:scale-[0.99] disabled:opacity-50 font-bold text-base flex items-center justify-center gap-2",
+                                canLumpSum ? "bg-success text-success-foreground" : "bg-primary text-primary-foreground"
+                            )}
+                        >
+                            {canLumpSum
+                                ? <>Fund <Currency value={remainingToMax} className="font-bold" /> now <ArrowRight className="w-5 h-5" aria-hidden /></>
+                                : <>Allocate <Currency value={recommended} per="mo" className="font-bold" perClassName="text-primary-foreground/70" /> <ArrowRight className="w-5 h-5" aria-hidden /></>}
+                        </button>
+                        <button
+                            onClick={() => nextStep()}
+                            className="mx-auto text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground rounded"
+                        >
+                            Skip this step
+                        </button>
+                    </RecommendationBlock>
+                )}
+
+                {isMarried && !isMaxed && (
+                    <div className="p-4 border border-border rounded-xl bg-secondary/50">
+                        <h4 className="font-bold text-foreground text-sm mb-1.5">Spousal IRA: the overlooked move</h4>
+                        <p className="text-sm text-muted-foreground">
+                            Both spouses can fund their own IRA, even if one does not work, as long as household
+                            earned income covers the total.{" "}
+                            <a
+                                href="https://www.irs.gov/publications/p590a"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 underline underline-offset-2 text-primary hover:no-underline"
+                            >
+                                IRS Publication 590-A <ExternalLink className="h-3 w-3" aria-hidden />
+                            </a>
+                        </p>
+                    </div>
+                )}
+
+                {!isMaxed && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                        <div className="p-4 rounded-xl border border-border bg-card">
+                            <span className="font-bold block mb-1 text-foreground">Roth IRA</span>
+                            <span className="text-muted-foreground">Pay tax now, tax-free forever. Best if you expect to be richer later.</span>
                         </div>
-                        <div className="p-4 bg-sky-50 dark:bg-sky-900/20 text-sky-900 dark:text-sky-200 rounded-xl border border-sky-100 dark:border-sky-900">
-                            <span className="font-bold block mb-1">Traditional IRA</span>
-                            Tax deduction now, pay tax later. Best if you need the tax break today.
+                        <div className="p-4 rounded-xl border border-border bg-card">
+                            <span className="font-bold block mb-1 text-foreground">Traditional IRA</span>
+                            <span className="text-muted-foreground">Deduction now, taxed later. Best if you need the break today.</span>
                         </div>
                     </div>
                 )}
 
-                <div className="p-4 bg-orange-50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-800 rounded-xl">
-                    <h4 className="font-bold text-orange-900 dark:text-orange-100 flex items-center gap-2">
-                        <TrendingUp className="w-5 h-5" />
-                        One Catch: Earned Income
-                    </h4>
-                    <p className="text-sm text-orange-800 dark:text-orange-200 mt-2">
-                        You can't contribute more than you earned from working. This is called <JargonTerm term="Earned Income" definition="Money you make from a job or your own business. It does NOT include interest, dividends, or rental income." />.
-                        {profile.filingStatus === 'married_joint'
-                            ? " For couples filing jointly, this applies to your COMBINED household earned income."
-                            : ` If you earned $3,000 this year, your IRA limit is $3,000, not ${limit.toLocaleString()}.`
-                        }
+                <div className="p-4 rounded-xl border border-border bg-secondary/50 space-y-3 text-sm text-muted-foreground">
+                    <p className="flex gap-2">
+                        <TrendingUp className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
+                        <span>
+                            <strong className="text-foreground">Earned income rule:</strong> you cannot contribute more than you earned from work
+                            (<JargonTerm term="Earned Income" definition="Money you make from a job or your own business. It does NOT include interest, dividends, or rental income." />).
+                            {isMarried ? " For joint filers, combined household earned income counts." : ""}
+                        </span>
+                    </p>
+                    <p className="flex gap-2">
+                        <TrendingUp className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
+                        <span>
+                            <strong className="text-foreground">High earner?</strong> Above roughly $146k single / $230k married, look at the{" "}
+                            <JargonTerm term="Backdoor Roth" definition="A completely legal maneuver: contribute to a Traditional IRA (with no deduction), then immediately convert it to a Roth IRA." />
+                            {" "}strategy.{" "}
+                            <a href="https://www.fidelity.com/learning-center/personal-finance/backdoor-roth-ira" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 underline underline-offset-2 text-primary hover:no-underline">
+                                Fidelity explainer <ExternalLink className="h-3 w-3" aria-hidden />
+                            </a>
+                        </span>
                     </p>
                 </div>
 
-                <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 rounded-xl">
-                    <h4 className="font-bold text-emerald-900 dark:text-emerald-100 flex items-center gap-2">
-                        <TrendingUp className="w-5 h-5" />
-                        Income Limit?
-                    </h4>
-                    <p className="text-sm text-emerald-800 dark:text-emerald-200 mt-2">
-                        If your income is very high (~$146k+ Single / ~$230k+ Married), you might need the <JargonTerm term="Backdoor Roth" definition="A completely legal loophole. You contribute to a Traditional IRA (getting no deduction), then immediately convert it to a Roth IRA." /> strategy. <a href="https://www.fidelity.com/learning-center/personal-finance/backdoor-roth-ira" target="_blank" rel="noopener noreferrer" className="underline text-emerald-600 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 ml-1">Read more at Fidelity ↗</a>
-                    </p>
-                </div>
-
-                <button
-                    onClick={() => {
-                        // Check for Earned Income
-                        if (profile.monthlyIncome <= 0) {
-                            alert("Wait! You must have 'Earned Income' to contribute to an IRA.");
-                            return;
-                        }
-
-                        // Lump Sum Integration
-                        if (canLumpSum) {
-                            setProfileBase({ excessCash: excessCash - remainingToMax });
-                            useFinancialStore.getState().addActionItem({
-                                id: 'ira-lump-sum',
-                                label: `Transfer $${remainingToMax.toLocaleString()} from Savings to IRA(s)`
-                            });
-                            nextStep();
-                            return;
-                        }
-
-                        // Add Allocation & Action Item
-                        if (!isMaxed && recommended > 0) {
-                            setAllocation('ira', recommended);
-                            useFinancialStore.getState().addActionItem({
-                                id: 'open-ira',
-                                label: `Maximize IRA: Contribute $${recommended.toLocaleString()}/mo ($${remainingToMax.toLocaleString()} remaining)`
-                            });
-                        } else if (isMaxed) {
-                            // Maybe add a 'completed' note?
-                        }
-
-                        nextStep();
-                    }}
-                    className={cn(
-                        "w-full p-4 rounded-2xl transition-all font-medium flex items-center justify-center gap-2",
-                        canLumpSum ? "bg-emerald-600 hover:bg-emerald-700 text-white" : "bg-primary text-primary-foreground hover:bg-primary/90"
-                    )}
-                >
-                    {isMaxed ? (
-                        <>IRA Done. Next Step <ArrowRight className="w-5 h-5" /></>
-                    ) : (
-                        canLumpSum ? (
-                            <>
-                                <div className="flex flex-col items-start mr-auto">
-                                    <span className="text-xs opacity-90 uppercase tracking-wider">Lump Sum Available</span>
-                                    <span>Fund ${remainingToMax.toLocaleString()} from Savings</span>
-                                </div>
-                                <ArrowRight className="w-6 h-6" />
-                            </>
-                        ) : (
-                            <>Allocate ${recommended.toLocaleString()}/mo & Next <ArrowRight className="w-5 h-5" /></>
-                        )
-                    )}
-                </button>
+                {isMaxed && !isOverContributed && (
+                    <button
+                        onClick={handleNext}
+                        className="w-full p-4 bg-primary text-primary-foreground rounded-2xl transition-all hover:brightness-110 active:scale-[0.99] font-bold flex items-center justify-center gap-2"
+                    >
+                        IRA done. Next step <ArrowRight className="w-5 h-5" aria-hidden />
+                    </button>
+                )}
+                {isOverContributed && (
+                    <button
+                        onClick={() => nextStep()}
+                        className="w-full p-4 bg-secondary text-secondary-foreground rounded-2xl transition-all hover:bg-secondary/80 font-bold flex items-center justify-center gap-2"
+                    >
+                        Understood. Next step <ArrowRight className="w-5 h-5" aria-hidden />
+                    </button>
+                )}
             </div>
         </ConversationalCard>
     );

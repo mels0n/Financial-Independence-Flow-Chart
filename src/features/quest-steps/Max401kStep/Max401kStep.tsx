@@ -1,63 +1,49 @@
 "use client";
 
 import { useFinancialStore } from "@/entities/financial/model/financialStore";
-import { getFinancialConstants } from "@/shared/config/financial-constants";
+import { ASSUMPTIONS, getFinancialConstants, getYearMeta } from "@/shared/config/financial-constants";
 import { useState } from "react";
 import { ConversationalCard } from "@/shared/ui/ConversationalCard/ConversationalCard";
-import { ArrowRight, BarChart3, Building, PiggyBank } from "lucide-react";
+import { RecommendationBlock } from "@/shared/ui/RecommendationBlock/RecommendationBlock";
+import { Currency } from "@/shared/ui/Currency/Currency";
+import { ArrowRight, Building2, Repeat } from "lucide-react";
+import { cn } from "@/shared/lib/utils";
 
 export function Max401kStep() {
     const { nextStep, selectedYear, getRemainingBudget, profile, setAllocation } = useFinancialStore();
     const remainingBudget = getRemainingBudget();
 
-    // State
     const [alreadyContributed, setAlreadyContributed] = useState(0);
     const [userHasPlan, setUserHasPlan] = useState(true);
-    const [spouseHasPlan, setSpouseHasPlan] = useState(true); // Default to true if married
+    const [spouseHasPlan, setSpouseHasPlan] = useState(true);
 
     const baseLimit = getFinancialConstants(selectedYear).k401.limit;
+    const yearMeta = getYearMeta(selectedYear);
+    const isMarried = profile.filingStatus === 'married_joint';
 
-    // Calculate Total Limit
     let limit = 0;
-    let limitDescription = "Individual Limit";
-
-    if (profile.filingStatus === 'married_joint') {
-        const userLimit = userHasPlan ? baseLimit : 0;
-        const spouseLimit = spouseHasPlan ? baseLimit : 0;
-        limit = userLimit + spouseLimit;
-
-        if (userHasPlan && spouseHasPlan) {
-            limitDescription = "Combined Limit (Both Working)";
-        } else if (userHasPlan) {
-            limitDescription = "Your Limit Only";
-        } else if (spouseHasPlan) {
-            limitDescription = "Spouse Limit Only";
-        } else {
-            limitDescription = "No Plans Available";
-        }
+    let limitDescription = "individual limit";
+    if (isMarried) {
+        limit = (userHasPlan ? baseLimit : 0) + (spouseHasPlan ? baseLimit : 0);
+        limitDescription = userHasPlan && spouseHasPlan
+            ? "combined limit, both plans"
+            : userHasPlan ? "your plan only"
+                : spouseHasPlan ? "spouse's plan only" : "no plans available";
     } else {
-        // Single / Head of Household
         limit = userHasPlan ? baseLimit : 0;
-        limitDescription = userHasPlan ? "Individual Limit" : "No Plan Available";
+        limitDescription = userHasPlan ? "individual limit" : "no plan available";
     }
 
-    // Logic
-    const remainingToMax = Math.max(0, limit - alreadyContributed);
+    const rawRemaining = limit - alreadyContributed;
+    const remainingToMax = Math.max(0, rawRemaining);
     const monthlyToMax = Math.round(remainingToMax / 12);
-
-    // We recommend the LESSER of: What they have left in budget, OR what they have left to max 401k
     const recommended = Math.min(remainingBudget, monthlyToMax);
-    const isMaxed = remainingToMax <= 0;
-    const isOverContributed = remainingToMax < 0;
+    const isMaxed = rawRemaining <= 0;
 
-    // Tax Savings Calc (Est 24% bracket default for high income targeting 401k max)
-    // 24% federal
-    const predictedTaxSavings = Math.round(recommended * 0.24);
+    const bracket = ASSUMPTIONS.marginalFederalRateHigh.value;
+    const predictedTaxSavings = Math.round(recommended * bracket);
 
-    // Cash Flow Shifting Logic
     const excessCash = profile.excessCash || 0;
-    // Suggest shifting if they have significant cash (e.g. > $10k) but their monthly budget (recommended) won't max it out
-    // OR if they just have a ton of cash.
     const showCashFlowShifting = !isMaxed && excessCash > 10000 && recommended < monthlyToMax;
 
     const handleNext = () => {
@@ -74,126 +60,123 @@ export function Max401kStep() {
 
     return (
         <ConversationalCard
-            title={isMaxed ? "401k Maxed! 🏢" : "Max Out 401k 🏢"}
-            description="With moderate debts under control, let's go back to your Employer Plan and fill it up completely."
+            title={isMaxed ? "401(k): maxed" : "Fill the 401(k)"}
+            description="With moderate debts handled, go back to the employer plan and fill it to the ceiling."
+            icon={Building2}
             mode="advice"
         >
-            <div className="space-y-6">
+            <div className="space-y-5">
                 {!isMaxed && (
-                    <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
-                        <div className="flex items-center gap-4 mb-2">
-                            <div className="bg-blue-500 rounded-full p-2 text-white">
-                                <Building className="w-6 h-6" />
-                            </div>
-                            <div>
-                                <p className="text-sm text-muted-foreground">{selectedYear} {limitDescription}</p>
-                                <p className="text-3xl font-bold text-foreground">
-                                    ${limit.toLocaleString()}
-                                </p>
-                            </div>
+                    <div className="p-4 rounded-xl border border-border bg-card">
+                        <div className="flex items-baseline justify-between gap-4">
+                            <span className="text-sm text-muted-foreground">{selectedYear} {limitDescription}</span>
+                            <Currency value={limit} className="text-2xl font-bold text-foreground" />
                         </div>
 
-                        <div className="mt-4 pt-4 border-t border-blue-200 dark:border-blue-800 space-y-3">
-                            {/* User Checkbox */}
-                            <div className="flex items-center gap-2">
+                        <div className="mt-4 pt-4 border-t border-border space-y-3">
+                            <label htmlFor="user-plan" className="flex items-center gap-2.5 text-sm text-foreground cursor-pointer select-none">
                                 <input
                                     type="checkbox"
                                     checked={userHasPlan}
                                     onChange={e => setUserHasPlan(e.target.checked)}
                                     id="user-plan"
-                                    className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                    className="w-4 h-4 rounded border-border bg-secondary text-primary focus:ring-primary"
                                 />
-                                <label htmlFor="user-plan" className="text-sm text-foreground select-none cursor-pointer">
-                                    I have a 401k/403b available at my job
-                                </label>
-                            </div>
+                                I have a 401(k)/403(b) available at my job
+                            </label>
 
-                            {/* Spouse Checkbox (Only if married) */}
-                            {profile.filingStatus === 'married_joint' && (
-                                <div className="flex items-center gap-2">
+                            {isMarried && (
+                                <label htmlFor="spouse-plan" className="flex items-center gap-2.5 text-sm text-foreground cursor-pointer select-none">
                                     <input
                                         type="checkbox"
                                         checked={spouseHasPlan}
                                         onChange={e => setSpouseHasPlan(e.target.checked)}
                                         id="spouse-plan"
-                                        className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                        className="w-4 h-4 rounded border-border bg-secondary text-primary focus:ring-primary"
                                     />
-                                    <label htmlFor="spouse-plan" className="text-sm text-foreground select-none cursor-pointer">
-                                        My spouse has a 401k/403b available at their job
-                                    </label>
-                                </div>
+                                    My spouse has one at their job
+                                </label>
                             )}
                         </div>
                     </div>
                 )}
 
-                {showCashFlowShifting && (
-                    <div className="p-4 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-xl">
-                        <h4 className="font-bold text-indigo-900 dark:text-indigo-100 flex items-center gap-2 mb-2">
-                            🔄 Cash Flow Shifting Strategy
-                        </h4>
-                        <p className="text-sm text-indigo-800 dark:text-indigo-200 mb-2">
-                            You have <strong>${excessCash.toLocaleString()}</strong> in excess cash, but your monthly budget only supports contributing <strong>${recommended.toLocaleString()}/mo</strong> to your 401k.
-                        </p>
-                        <p className="text-sm text-indigo-800 dark:text-indigo-200">
-                            <strong>The Hack:</strong> Temporarily set your 401k contribution to <strong>100% of your paycheck</strong>.
-                            Use your cash savings to pay your bills during this time.
-                            This effectively "moves" your savings into your tax-advantaged 401k!
-                        </p>
-                    </div>
-                )}
-
-                {/* Already Contributed Input */}
-                <div className="p-4 border border-border rounded-xl flex items-center justify-between bg-card">
+                <div className="p-4 border border-border rounded-xl flex items-center justify-between gap-4 bg-card">
                     <div>
-                        <label className="text-sm font-medium text-foreground">Already contributing / contributed?</label>
-                        <p className="text-xs text-muted-foreground">Total {selectedYear} contributions</p>
+                        <label htmlFor="k401-contributed" className="text-sm font-medium text-foreground">Already contributing or contributed?</label>
+                        <p className="text-xs text-muted-foreground">Total {selectedYear} employee contributions</p>
                     </div>
-                    <div className="relative w-32">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                    <div className="relative w-32 shrink-0">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden>$</span>
                         <input
+                            id="k401-contributed"
                             type="number"
                             value={alreadyContributed || ''}
                             onChange={(e) => setAlreadyContributed(Number(e.target.value))}
-                            className={`w-full pl-6 pr-3 py-2 bg-secondary rounded-lg font-bold text-right focus:outline-none focus:ring-2 ${isOverContributed
-                                ? "text-red-500 border-red-500 ring-red-500 focus:ring-red-500"
-                                : "focus:ring-primary/50 text-foreground"
-                                }`}
+                            className="w-full pl-6 pr-3 py-2 bg-secondary rounded-lg font-mono tabular font-bold text-right text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                             placeholder="0"
                         />
                     </div>
                 </div>
 
-                {!isMaxed && recommended > 0 && (
-                    <div className="p-4 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900 rounded-xl">
-                        <div className="flex gap-2 items-center mb-2">
-                            <PiggyBank className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                            <span className="font-bold text-emerald-800 dark:text-emerald-300">Potential Tax Savings</span>
-                        </div>
-                        <p className="text-sm text-emerald-700 dark:text-emerald-400">
-                            Contributing <strong>${recommended.toLocaleString()}/mo</strong> reduces your taxable income.
-                            <br />
-                            Estimated Tax Savings: <strong>~${predictedTaxSavings.toLocaleString()}/mo</strong> (at ~24% Fed bracket).
+                {showCashFlowShifting && (
+                    <div className="p-4 rounded-xl border border-primary/30 bg-primary/5">
+                        <h4 className="font-bold text-foreground flex items-center gap-2 mb-1.5 text-sm">
+                            <Repeat className="h-4 w-4 text-primary" aria-hidden />
+                            Cash-flow shifting: the power move
+                        </h4>
+                        <p className="text-sm text-muted-foreground">
+                            You hold <Currency value={excessCash} className="text-sm font-bold text-foreground" /> in surplus cash, but your monthly
+                            budget only supports <Currency value={recommended} per="mo" className="text-sm font-bold text-foreground" />.
+                            Temporarily set your 401(k) contribution near 100% of paycheck and live on the cash.
+                            That legally teleports your savings into tax-advantaged space.
                         </p>
                     </div>
                 )}
 
-                <div className="flex items-center justify-between p-4 border border-border rounded-xl bg-card">
-                    <span className="text-sm font-medium">Remaining Budget</span>
-                    <span className="font-bold font-mono text-emerald-500">${remainingBudget.toLocaleString()}</span>
-                </div>
-
-                <div className="text-sm text-muted-foreground text-center">
-                    Note: 401k contributions must be made via <strong>Payroll Deduction</strong>. You cannot transfer cash directly.
-                </div>
-
-                <button
-                    onClick={handleNext}
-                    className="w-full p-4 bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 transition-all font-medium flex items-center justify-center gap-2"
-                >
-                    {isMaxed ? "Done. Next" : `Allocate $${recommended.toLocaleString()}/mo & Next`} <ArrowRight className="w-5 h-5" />
-                </button>
+                {!isMaxed && recommended > 0 ? (
+                    <RecommendationBlock
+                        amount={recommended}
+                        benefit={
+                            <span>
+                                <span className="block font-mono tabular text-base font-bold text-success">≈ ${predictedTaxSavings.toLocaleString()}/mo less tax</span>
+                                while the contribution runs
+                            </span>
+                        }
+                        math={[
+                            { label: `${selectedYear} employee limit (${limitDescription})`, value: `$${limit.toLocaleString()}` },
+                            { label: "Already contributed", value: `− $${alreadyContributed.toLocaleString()}` },
+                            { label: "Spread across 12 months", value: "÷ 12" },
+                            { label: "Monthly to hit the max", value: `$${monthlyToMax.toLocaleString()}`, total: true },
+                            { label: "Your free budget (the cap)", value: `$${remainingBudget.toLocaleString()}` },
+                            { label: `Tax saved: $${recommended.toLocaleString()} × ${bracket * 100}%`, value: `≈ $${predictedTaxSavings.toLocaleString()}/mo` },
+                        ]}
+                        assumptions={`${ASSUMPTIONS.marginalFederalRateHigh.detail} Contributions go through payroll deduction; you cannot transfer cash into a 401(k) directly.`}
+                        source={{ ...yearMeta.sources.k401, projected: yearMeta.status === "projected" }}
+                    >
+                        <button
+                            onClick={handleNext}
+                            className="w-full p-4 bg-primary text-primary-foreground rounded-2xl transition-all hover:brightness-110 active:scale-[0.99] font-bold text-base flex items-center justify-center gap-2"
+                        >
+                            Allocate <Currency value={recommended} per="mo" className="font-bold" perClassName="text-primary-foreground/70" />
+                            <ArrowRight className="w-5 h-5" aria-hidden />
+                        </button>
+                        <button
+                            onClick={() => nextStep()}
+                            className="mx-auto text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground rounded"
+                        >
+                            Skip this step
+                        </button>
+                    </RecommendationBlock>
+                ) : (
+                    <button
+                        onClick={handleNext}
+                        className="w-full p-4 bg-primary text-primary-foreground rounded-2xl transition-all hover:brightness-110 active:scale-[0.99] font-bold flex items-center justify-center gap-2"
+                    >
+                        {isMaxed ? "Maxed. Next step" : "Nothing to allocate. Next"} <ArrowRight className="w-5 h-5" aria-hidden />
+                    </button>
+                )}
             </div>
-        </ConversationalCard >
+        </ConversationalCard>
     );
 }

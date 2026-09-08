@@ -52,7 +52,25 @@ const config: Config = {
                 surface: {
                     DEFAULT: "hsl(var(--surface))",
                     variant: "hsl(var(--surface-variant))"
-                }
+                },
+                // Semantic contract: gold = earned, emerald = money-good, amber = caution
+                reward: {
+                    DEFAULT: "hsl(var(--reward))",
+                    foreground: "hsl(var(--reward-foreground))",
+                },
+                success: {
+                    DEFAULT: "hsl(var(--success))",
+                    foreground: "hsl(var(--success-foreground))",
+                },
+                warning: {
+                    DEFAULT: "hsl(var(--warning))",
+                    foreground: "hsl(var(--warning-foreground))",
+                },
+            },
+            fontFamily: {
+                sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+                display: ["var(--font-display)", "var(--font-sans)", "sans-serif"],
+                mono: ["var(--font-mono)", "ui-monospace", "monospace"],
             },
             borderRadius: {
                 lg: "var(--radius)",

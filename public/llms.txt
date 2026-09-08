@@ -17,3 +17,5 @@ Domain: https://financial-independence.melson.us
 - /: Main flowchart application.
 - /faq: Frequently Asked Questions about methodology and data.
 - /howto: Guide on how to use the interactive tools.
+- /docs: Official IRS contribution limits and rules with citations.
+- /sources: Sources and methodology. Every IRS citation, every assumption behind recommendations, the step-ordering rationale, and what data the app stores (browser-only sessionStorage).

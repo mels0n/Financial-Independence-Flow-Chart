@@ -6,7 +6,7 @@ export const glossary: Record<string, string> = {
     "Deductible": "The amount you pay for covered health care services before your insurance plan starts to pay.",
     "APR": "Annual Percentage Rate. The yearly interest you are charged on borrowed money.",
     "MAGI": "Modified Adjusted Gross Income. Your household income with certain deductions added back. Used to determine eligibility for Roth IRA contributions.",
-    "FICA": "Federal Insurance Contributions Act. A U.S. federal payroll tax. It stands for two taxes—Social Security tax and Medicare tax.",
+    "FICA": "Federal Insurance Contributions Act. A U.S. federal payroll tax covering two taxes: Social Security and Medicare.",
     "VTSAX": "Vanguard Total Stock Market Index Fund. A very popular low-cost mutual fund that invests in the entire US stock market.",
     "Backdoor Roth": "A strategy for high earners to contribute to a Roth IRA correctly. It involves contributing to a Traditional IRA and then converting it to a Roth IRA.",
 };

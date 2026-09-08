@@ -37,11 +37,11 @@ export default function DocsPage() {
             <div className="space-y-12">
                 {/* 1. Spousal IRA Section (High Priority) */}
                 <section id="spousal-ira" className="scroll-mt-20">
-                    <div className="p-6 bg-purple-50 dark:bg-purple-900/10 border border-purple-200 dark:border-purple-800 rounded-2xl">
-                        <h2 className="text-2xl font-bold mb-4 text-purple-900 dark:text-purple-100 flex items-center gap-2">
-                            💍 Spousal IRA Rules
+                    <div className="p-6 bg-primary/5 border border-primary/30 rounded-2xl">
+                        <h2 className="text-2xl font-bold mb-4 text-foreground flex items-center gap-2">
+                            Spousal IRA Rules
                         </h2>
-                        <div className="space-y-4 text-purple-900/80 dark:text-purple-200/80 leading-relaxed">
+                        <div className="space-y-4 text-muted-foreground leading-relaxed">
                             <p>
                                 <strong>The Rule:</strong> Typically, you can only contribute to an IRA if you have "Earned Income" (wages, salary).
                                 However, there is a special exception for married couples filing jointly.
@@ -59,7 +59,7 @@ export default function DocsPage() {
                                     href="https://www.irs.gov/publications/p590a#en_US_2023_publink1000230412"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="underline hover:text-purple-700 dark:hover:text-purple-300"
+                                    className="underline hover:text-primary"
                                 >
                                     Source: IRS Publication 590-A (Contributions to IRAs)
                                 </a>

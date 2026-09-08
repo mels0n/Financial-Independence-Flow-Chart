@@ -3,7 +3,9 @@
 import { useState, useEffect } from "react";
 import { useFinancialStore } from "@/entities/financial/model/financialStore";
 import { ConversationalCard } from "@/shared/ui/ConversationalCard/ConversationalCard";
-import { ArrowRight, ShieldCheck, AlertTriangle, Battery, BatteryFull, CheckCircle2 } from "lucide-react";
+import { RecommendationBlock } from "@/shared/ui/RecommendationBlock/RecommendationBlock";
+import { Currency } from "@/shared/ui/Currency/Currency";
+import { ArrowRight, ShieldCheck, AlertTriangle, Castle, Check, Rocket } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { JargonTerm } from "@/shared/ui/JargonTerm/JargonTerm";
 
@@ -14,56 +16,41 @@ interface EmergencyFundStepProps {
 export function EmergencyFundStep({ mode = "starter" }: EmergencyFundStepProps) {
     const { profile, setProfileBase, nextStep } = useFinancialStore();
     const [stepPhase, setStepPhase] = useState<"ask-amount" | "ask-stability" | "advice">(() => {
-        // If we already have a value from a previous step (Starter), skip asking again for Full
         if (mode === 'full' && profile.emergencyFundAmount > 0) {
             return 'ask-stability';
         }
         return 'ask-amount';
     });
-    // Pre-fill if they already entered an amount in a previous step
     const [currentSavings, setCurrentSavings] = useState(
         profile.emergencyFundAmount > 0
             ? profile.emergencyFundAmount.toLocaleString()
             : ""
     );
-    // Ensure we sync with profile if coming back to this step
     useEffect(() => {
         if (!currentSavings && profile.emergencyFundAmount > 0) {
             setCurrentSavings(profile.emergencyFundAmount.toLocaleString());
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [profile.emergencyFundAmount]);
 
     const [isStable, setIsStable] = useState(true);
     const [showAdvice, setShowAdvice] = useState(false);
-
-    // For now, simple input.
     const [isHysaLocal, setIsHysaLocal] = useState(profile.isHysa);
 
-    // Initial load sync
     useEffect(() => {
         setIsHysaLocal(profile.isHysa);
     }, [profile.isHysa]);
 
-    // Dynamic Target Logic
-    // Starter = 1 month always
-    // Full = Sliding Scale (Default 3 or 6)
     const [sliderMonths, setSliderMonths] = useState(3);
 
     const starterTarget = profile.monthlyExpenses * 1;
     const fullTarget3 = profile.monthlyExpenses * 3;
     const fullTarget6 = profile.monthlyExpenses * 6;
 
-    // If starter, target is fixed. If full, it depends on isStable (default true initially)
-    const target = mode === "starter"
-        ? starterTarget
-        : (isStable ? fullTarget3 : fullTarget6);
-
-    // Recalculate derived values for effect
     const derivedVal = parseFloat(currentSavings.replace(/,/g, "")) || 0;
     const derivedTarget = mode === "starter" ? starterTarget : (isStable ? fullTarget3 : fullTarget6);
     const derivedExcess = Math.max(0, derivedVal - derivedTarget);
 
-    // Sync Excess Cash - MOVED TO TOP LEVEL
     useEffect(() => {
         if (showAdvice) {
             if (derivedExcess !== profile.excessCash) {
@@ -72,43 +59,44 @@ export function EmergencyFundStep({ mode = "starter" }: EmergencyFundStepProps) 
         }
     }, [showAdvice, derivedExcess, profile.excessCash, setProfileBase]);
 
-    const titleText = mode === "starter" ? "Safety Net 🕸️" : "Fortress of Solitude 🏰";
+    const titleText = mode === "starter" ? "The safety net" : "The fortress";
+    const StepIcon = mode === "starter" ? ShieldCheck : Castle;
 
     const descriptionText = mode === "starter"
-        ? `Before we invest, let's make sure you won't crash. You need at least 1 month of expenses ($${starterTarget.toLocaleString()}) in CASH (not invested) savings. How much do you have saved?`
-        : `You previously noted $${profile.emergencyFundAmount.toLocaleString()} saved. To reach financial peace, we need 3-6 months of expenses. What is your TOTAL emergency savings now?`;
+        ? (
+            <span>
+                Before anything gets invested, one month of expenses (<Currency value={starterTarget} className="text-base font-bold text-foreground" />)
+                sits in CASH. Not invested, just there. How much cash do you have saved?
+            </span>
+        )
+        : (
+            <span>
+                You noted <Currency value={profile.emergencyFundAmount} className="text-base font-bold text-foreground" /> saved.
+                Financial peace means 3-6 months of expenses. What is your TOTAL emergency savings now?
+            </span>
+        );
 
     const handleSubmitAmount = (e: React.FormEvent) => {
         e.preventDefault();
-        // If mode is FULL, we first need to ask about stability BEFORE showing advice/target
-        // Or we can just capture the amount first, then ask stability?
-        // Let's capture amount.
         if (mode === "full") {
             setStepPhase("ask-stability");
         } else {
-            // Starter mode doesn't need stability check
             finishStep();
         }
     };
 
     const handleStability = (stable: boolean) => {
         setIsStable(stable);
-        // Default Slider based on stability
         const defaultMonths = stable ? 3 : 6;
         setSliderMonths(defaultMonths);
-
-        // Update store with preference
         setProfileBase({ emergencyFundMonths: defaultMonths });
-
-        // Now we can calculate target and show advice
         setStepPhase("advice");
-        finishStep(stable);
+        finishStep();
     };
 
-    const finishStep = (stableOverride?: boolean) => {
+    const finishStep = () => {
         const val = parseFloat(currentSavings.replace(/,/g, ""));
         if (!isNaN(val)) {
-            // Save Amount AND HYSA status
             setProfileBase({
                 emergencyFundAmount: val,
                 isHysa: isHysaLocal
@@ -117,36 +105,29 @@ export function EmergencyFundStep({ mode = "starter" }: EmergencyFundStepProps) 
         }
     };
 
-    const handleNext = () => {
-        nextStep();
-    };
-
-    // 1. Stability Check (Only for Full Mode)
     if (stepPhase === "ask-stability" && mode === "full") {
         return (
             <ConversationalCard
-                title="Risk Assessment 🎲"
-                description="How stable is your household income? (e.g., tenured job vs. freelancer/commission)"
+                title="Risk assessment"
+                description="How stable is your household income? (Tenured job vs freelance or commission.)"
+                icon={Castle}
             >
-                <div className="grid grid-cols-2 gap-4">
-                    <button onClick={() => handleStability(true)} className="p-6 bg-card border-2 border-border rounded-2xl hover:border-emerald-500 hover:bg-emerald-500/10 transition-all text-left">
-                        <div className="font-bold text-lg mb-1">Very Stable</div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <button onClick={() => handleStability(true)} className="p-6 bg-card border-2 border-border rounded-2xl hover:border-success hover:bg-success/10 transition-all text-left">
+                        <div className="font-bold text-lg mb-1 text-foreground">Very stable</div>
                         <div className="text-sm text-muted-foreground">My income is predictable and unlikely to stop.</div>
                     </button>
-                    <button onClick={() => handleStability(false)} className="p-6 bg-card border-2 border-border rounded-2xl hover:border-amber-500 hover:bg-amber-500/10 transition-all text-left">
-                        <div className="font-bold text-lg mb-1">Variable / Risky</div>
-                        <div className="text-sm text-muted-foreground">I'm self-employed, commission-based, or in a volatile industry.</div>
+                    <button onClick={() => handleStability(false)} className="p-6 bg-card border-2 border-border rounded-2xl hover:border-warning hover:bg-warning/10 transition-all text-left">
+                        <div className="font-bold text-lg mb-1 text-foreground">Variable / risky</div>
+                        <div className="text-sm text-muted-foreground">Self-employed, commission-based, or a volatile industry.</div>
                     </button>
                 </div>
             </ConversationalCard>
         );
     }
 
-    // 2. Advice / Result
     if (showAdvice) {
         const val = parseFloat(currentSavings.replace(/,/g, ""));
-
-        // Use sliderMonths for Full mode
         const finalTarget = mode === "starter"
             ? starterTarget
             : profile.monthlyExpenses * sliderMonths;
@@ -155,26 +136,18 @@ export function EmergencyFundStep({ mode = "starter" }: EmergencyFundStepProps) 
         const currentStepId = mode === "starter" ? "emergency-fund" : "emergency-fund-full";
         const remainingBudget = useFinancialStore.getState().getRemainingBudget();
 
-        // Calculate gap
         const shortage = Math.max(0, finalTarget - val);
         const excess = Math.max(0, val - finalTarget);
-
-        // Calculate cap: Don't allocate more than the shortage itself (1 month payoff)
-        // or the remaining budget, whichever is smaller.
         const allocationAmount = Math.min(remainingBudget, shortage);
-
-        // Calculate weeks/months
         const monthsToGoal = allocationAmount > 0 ? Math.ceil(shortage / allocationAmount) : 0;
 
         const handleAllocate = () => {
             if (allocationAmount > 0) {
                 useFinancialStore.getState().setAllocation(currentStepId, allocationAmount);
-
                 const durationText = monthsToGoal > 0 ? ` for ${monthsToGoal} months` : '';
-
-                // Add Action Item to actually do it
                 useFinancialStore.getState().addActionItem({
-                    id: `emergency-fund-transfer-${mode}`, // Unique ID per mode
+                    id: `emergency-fund-transfer-${mode}`,
+                    stepId: currentStepId,
                     label: `Set up auto-transfer of $${allocationAmount.toLocaleString()}/mo to Savings${durationText} (${mode === 'starter' ? 'Starter' : 'Full'})`
                 });
             }
@@ -182,81 +155,87 @@ export function EmergencyFundStep({ mode = "starter" }: EmergencyFundStepProps) 
         };
 
         const handleSkip = () => {
-            // Even if skipped, suggest opening a HYSA if they don't have one
             if (!isHysaLocal && !isFunded) {
                 useFinancialStore.getState().addActionItem({
                     id: 'open-hysa',
+                    stepId: currentStepId,
                     label: 'Open High Yield Savings Account (HYSA)'
                 });
             }
-            // If they HAVE funds but it's NOT in a HYSA
             if (isFunded && !isHysaLocal && mode === 'starter') {
                 useFinancialStore.getState().addActionItem({
                     id: 'move-to-hysa',
+                    stepId: currentStepId,
                     label: 'Move Emergency Fund to High Yield Savings Account (HYSA)'
                 });
             }
             nextStep();
         };
 
-        let title = "";
-        let description = "";
-        let icon = null;
+        let title: string;
+        let description: React.ReactNode;
 
         if (isFunded) {
-            title = mode === "starter" ? "Safety Net Secured" : "Fortress Built";
+            title = mode === "starter" ? "Safety net: secured" : "Fortress: built";
             description = mode === "starter"
-                ? "Excellent. Having at least one month of cash prevents minor mishaps from becoming debt disasters."
-                : `You are fully funded for ${isStable ? '3' : '6'} months of expenses. You have ultimate freedom of mind.`;
-            icon = mode === "starter" ? <Battery className="w-12 h-12 text-emerald-500" /> : <BatteryFull className="w-12 h-12 text-primary" />;
+                ? "One month of cash means a surprise bill stays a bill instead of becoming debt."
+                : `Fully funded for ${sliderMonths} months of expenses. That is real freedom of mind.`;
         } else {
-            // Underfunded
-            title = mode === "starter" ? "Danger Zone" : "Keep Building";
-            if (mode === 'starter') {
-                description = `You are short by $${shortage.toLocaleString()}. Before getting any employer match or paying debt, you MUST save this cash.`;
-            } else {
-                // Dynamic description based on slider
-                description = `Based on your risk profile, we recommend ${isStable ? '3' : '6'} months, but you have selected a target of ${sliderMonths} months ($${finalTarget.toLocaleString()}). You are short $${shortage.toLocaleString()}.`;
-            }
-            icon = <AlertTriangle className="w-12 h-12 text-orange-500" />;
+            title = mode === "starter" ? "Danger zone" : "Keep building";
+            description = mode === 'starter'
+                ? (
+                    <span>
+                        You are short by <Currency value={shortage} className="text-base font-bold text-destructive" />. Before any match
+                        or debt payoff, this cash comes first.
+                    </span>
+                )
+                : (
+                    <span>
+                        Your target is {sliderMonths} months (<Currency value={finalTarget} className="text-base font-bold text-foreground" />);
+                        we recommend {isStable ? 3 : 6} for your risk profile. You are short{" "}
+                        <Currency value={shortage} className="text-base font-bold text-warning" />.
+                    </span>
+                );
         }
 
         return (
             <ConversationalCard
                 title={title}
                 description={description}
+                icon={isFunded ? StepIcon : AlertTriangle}
                 mode="advice"
             >
-                <div className="space-y-6">
-                    <div className="flex items-center justify-center py-4">
-                        {icon}
-                    </div>
-
+                <div className="space-y-5">
                     <div className="space-y-2">
                         <div className="flex justify-between text-sm font-medium text-muted-foreground">
-                            <span>Current: ${val.toLocaleString()}</span>
-                            <span>Target ({mode === 'starter' ? '1 mo' : `${sliderMonths} mo`}): ${finalTarget.toLocaleString()}</span>
+                            <span>Saved: <Currency value={val} className="text-sm text-foreground" /></span>
+                            <span>Target ({mode === 'starter' ? '1 mo' : `${sliderMonths} mo`}): <Currency value={finalTarget} className="text-sm text-foreground" /></span>
                         </div>
-                        <div className="w-full bg-secondary rounded-full h-4 overflow-hidden">
+                        <div
+                            className="w-full bg-secondary rounded-full h-3.5 overflow-hidden border border-border"
+                            role="progressbar"
+                            aria-valuenow={Math.min(100, Math.round((val / Math.max(1, finalTarget)) * 100))}
+                            aria-valuemin={0}
+                            aria-valuemax={100}
+                            aria-label="Emergency fund progress"
+                        >
                             <div
-                                className={cn("h-full rounded-full transition-all duration-1000 ease-out",
-                                    isFunded ? "bg-emerald-500" : "bg-orange-500"
+                                className={cn("h-full rounded-full transition-all duration-700 ease-out",
+                                    isFunded ? "bg-success" : "bg-warning"
                                 )}
-                                style={{ width: `${Math.min((val / finalTarget) * 100, 100)}%` }}
+                                style={{ width: `${Math.min((val / Math.max(1, finalTarget)) * 100, 100)}%` }}
                             />
                         </div>
                     </div>
 
-                    {/* SLIDER UI (Full Mode Only) */}
                     {mode === 'full' && (
-                        <div className="p-4 bg-secondary/30 border border-border rounded-xl space-y-3">
+                        <div className="p-4 bg-secondary/50 border border-border rounded-xl space-y-3">
                             <div className="flex justify-between items-center">
-                                <label className="text-sm font-bold flex items-center gap-2">
-                                    🎚️ Risk Comfort Level
-                                </label>
-                                <span className="text-xl font-bold text-primary">{sliderMonths} Months</span>
+                                <label htmlFor="ef-months" className="text-sm font-bold text-foreground">Risk comfort level</label>
+                                <span className="text-lg font-bold text-primary font-mono tabular">{sliderMonths} months</span>
                             </div>
                             <input
+                                id="ef-months"
                                 type="range"
                                 min="3"
                                 max="24"
@@ -267,115 +246,128 @@ export function EmergencyFundStep({ mode = "starter" }: EmergencyFundStepProps) 
                                     setSliderMonths(m);
                                     setProfileBase({ emergencyFundMonths: m });
                                 }}
-                                className="w-full accent-primary h-2 bg-secondary rounded-lg appearance-none cursor-pointer"
+                                className="w-full h-2 cursor-pointer"
                             />
                             <p className="text-xs text-muted-foreground">
-                                We recommend {isStable ? '3' : '6'} months, but you can adjust this up to 24 months ($ {(profile.monthlyExpenses * 24).toLocaleString()}) if you prefer extra safety.
+                                We recommend {isStable ? 3 : 6} months. Go up to 24 (<Currency value={profile.monthlyExpenses * 24} className="text-xs" />) if extra safety helps you sleep.
                             </p>
                         </div>
                     )}
 
                     {isFunded && excess > 0 && (
-                        <div className="p-4 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-100 dark:border-emerald-800 rounded-xl">
-                            <h4 className="font-bold text-emerald-900 dark:text-emerald-100 flex items-center gap-2 mb-1">
-                                🚀 Surplus Detected!
-                            </h4>
-                            <p className="text-sm text-emerald-800 dark:text-emerald-200">
-                                You have <strong>${excess.toLocaleString()}</strong> in excess cash above your emergency fund.
-                                We will use this to "Lump Sum" fund your investments in the next steps!
+                        <div className="p-4 rounded-xl border border-success/40 bg-success/10 flex gap-3">
+                            <Rocket className="mt-0.5 h-4 w-4 shrink-0 text-success" aria-hidden />
+                            <p className="text-sm text-foreground/90">
+                                <strong className="text-success">Surplus detected:</strong> you hold{" "}
+                                <Currency value={excess} className="text-sm font-bold text-foreground" /> above the target.
+                                The quest will offer to lump-sum it into investments in the steps ahead.
                             </p>
                         </div>
                     )}
 
                     {!isFunded && (
-                        <div className="p-4 bg-secondary/50 rounded-xl border border-border">
-                            <h4 className="font-bold flex items-center gap-2 mb-2">
-                                <ShieldCheck className="w-4 h-4 text-primary" />
-                                The Plan
-                            </h4>
-                            <p className="text-sm text-foreground mb-3">
-                                You have <strong>${remainingBudget.toLocaleString()}/mo</strong> available in your budget.
-                            </p>
-                            {remainingBudget > 0 ? (
-                                <div className="space-y-3">
-                                    <p className="text-sm text-muted-foreground">
-                                        Allocating <strong>${allocationAmount.toLocaleString()}/mo</strong> will reach your goal in <strong>{monthsToGoal} months</strong> {monthsToGoal === 1 ? "(next month!)" : ""}.
-                                    </p>
-                                    <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg text-sm text-blue-900 dark:text-blue-100 border border-blue-100 dark:border-blue-800">
-                                        <strong>Pro Tip:</strong> Don't let this sit in a checking account. Put it in a <JargonTerm term="HYSA" definition="High Yield Savings Account. A bank account that pays 4-5% interest (vs 0.01% standard), is FDIC insured, and completely liquid." /> to fight inflation.
-                                    </div>
-                                </div>
-                            ) : (
-                                <p className="text-sm text-destructive">
-                                    You have $0 budget left! You cannot fund this.
-                                </p>
-                            )}
-                        </div>
+                        remainingBudget > 0 ? (
+                            <RecommendationBlock
+                                amount={allocationAmount}
+                                benefit={<span>Reaches your target in <strong className="text-foreground">{monthsToGoal} {monthsToGoal === 1 ? "month" : "months"}</strong>.</span>}
+                                math={[
+                                    { label: `Target: ${mode === 'starter' ? 1 : sliderMonths} × $${profile.monthlyExpenses.toLocaleString()} expenses`, value: `$${finalTarget.toLocaleString()}` },
+                                    { label: "Already saved", value: `− $${val.toLocaleString()}` },
+                                    { label: "Shortage", value: `$${shortage.toLocaleString()}` },
+                                    { label: "Your free budget (the cap)", value: `$${remainingBudget.toLocaleString()}` },
+                                    { label: "Monthly transfer", value: `$${allocationAmount.toLocaleString()}`, total: true },
+                                ]}
+                                assumptions="Keep it liquid. A HYSA pays 4-5% and stays FDIC insured; the stock market is not the place for this money."
+                            >
+                                <button
+                                    onClick={handleAllocate}
+                                    className="w-full p-4 bg-primary text-primary-foreground rounded-2xl transition-all hover:brightness-110 active:scale-[0.99] font-bold flex items-center justify-center gap-2"
+                                >
+                                    Allocate <Currency value={allocationAmount} per="mo" className="font-bold" perClassName="text-primary-foreground/70" />
+                                    {monthsToGoal > 0 && <span className="font-medium text-primary-foreground/80">for {monthsToGoal} mo</span>}
+                                    <ArrowRight className="w-5 h-5" aria-hidden />
+                                </button>
+                                <button
+                                    onClick={handleSkip}
+                                    className="mx-auto text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground rounded"
+                                >
+                                    I cannot fund this right now
+                                </button>
+                            </RecommendationBlock>
+                        ) : (
+                            <div className="p-4 rounded-xl border border-destructive/40 bg-destructive/10 text-sm text-foreground/90">
+                                Your budget has <strong className="text-destructive">$0 free</strong>, so this cannot be funded monthly yet.
+                                The fix lives upstream: lower expenses or raise income, then rerun the quest.
+                            </div>
+                        )
                     )}
 
-                    <div className="flex flex-col gap-3">
-                        {!isFunded && remainingBudget > 0 ? (
-                            <button
-                                onClick={handleAllocate}
-                                className="w-full p-4 bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 transition-all font-medium flex items-center justify-center gap-2"
-                            >
-                                Allocate ${allocationAmount.toLocaleString()}/mo {monthsToGoal > 0 ? `(for ${monthsToGoal} mo)` : ''} <ArrowRight className="w-5 h-5" />
-                            </button>
-                        ) : (
-                            <button
-                                onClick={handleSkip}
-                                className={cn(
-                                    "w-full p-4 rounded-2xl transition-all font-medium flex items-center justify-center gap-2",
-                                    isFunded ? "bg-emerald-500 text-white hover:bg-emerald-600" : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                                )}
-                            >
-                                {isFunded ? "Goal Complete. Next" : "I cannot fund this right now. Skip"} <ArrowRight className="w-5 h-5" />
-                            </button>
-                        )}
-                    </div>
+                    {!isFunded && remainingBudget > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                            Where to keep it: a <JargonTerm term="HYSA" definition="High Yield Savings Account. A bank account paying 4-5% interest (vs 0.01% standard), FDIC insured, and completely liquid." /> beats a checking account by roughly 4% a year.
+                        </p>
+                    )}
+
+                    {(isFunded || remainingBudget <= 0) && (
+                        <button
+                            onClick={handleSkip}
+                            className={cn(
+                                "w-full p-4 rounded-2xl transition-all font-bold flex items-center justify-center gap-2",
+                                isFunded
+                                    ? "bg-success text-success-foreground hover:brightness-110 active:scale-[0.99]"
+                                    : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                            )}
+                        >
+                            {isFunded ? "Goal complete. Next" : "Understood. Next"} <ArrowRight className="w-5 h-5" aria-hidden />
+                        </button>
+                    )}
                 </div>
             </ConversationalCard>
         );
     }
 
-    // 0. Initial Ask Amount
     return (
         <ConversationalCard
             title={titleText}
             description={descriptionText}
+            icon={StepIcon}
         >
-            <form onSubmit={handleSubmitAmount} className="flex flex-col gap-6">
-                <div className="flex gap-4 items-center">
-                    <div className="relative flex-1">
-                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl text-muted-foreground font-medium">$</span>
-                        <input
-                            type="number"
-                            value={currentSavings}
-                            onChange={(e) => setCurrentSavings(e.target.value)}
-                            className="w-full pl-10 pr-4 py-4 text-2xl font-bold text-foreground bg-secondary rounded-2xl border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                            placeholder="0"
-                            autoFocus
-                        />
-                    </div>
+            <form onSubmit={handleSubmitAmount} className="flex flex-col gap-5">
+                <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl text-muted-foreground font-medium" aria-hidden>$</span>
+                    <input
+                        type="number"
+                        value={currentSavings}
+                        onChange={(e) => setCurrentSavings(e.target.value)}
+                        aria-label="Current cash savings in dollars"
+                        className="w-full pl-10 pr-4 py-4 text-2xl font-mono tabular font-bold text-foreground bg-secondary rounded-2xl border border-border focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                        placeholder="0"
+                        autoFocus
+                    />
                 </div>
 
                 {mode === 'starter' && (
-                    <div className="flex items-center gap-3 p-4 bg-secondary/50 rounded-xl border border-border cursor-pointer hover:bg-secondary transition-colors" onClick={() => setIsHysaLocal(!isHysaLocal)}>
-                        <div className={cn("w-6 h-6 rounded-md border-2 flex items-center justify-center transition-colors", isHysaLocal ? "bg-emerald-500 border-emerald-500" : "border-muted-foreground")}>
-                            {isHysaLocal && <CheckCircle2 className="w-4 h-4 text-white" />}
-                        </div>
-                        <div className="flex-1">
-                            <p className="font-medium text-sm">Is this in a High Yield Savings Account (HYSA)?</p>
-                            <p className="text-xs text-muted-foreground">Earning 4-5% interest vs 0.01%</p>
-                        </div>
-                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setIsHysaLocal(!isHysaLocal)}
+                        aria-pressed={isHysaLocal}
+                        className="flex items-center gap-3 p-4 bg-secondary/50 rounded-xl border border-border text-left hover:bg-secondary transition-colors"
+                    >
+                        <span className={cn("w-6 h-6 shrink-0 rounded-md border-2 flex items-center justify-center transition-colors", isHysaLocal ? "bg-success border-success text-success-foreground" : "border-muted-foreground")}>
+                            {isHysaLocal && <Check className="w-4 h-4" strokeWidth={3} aria-hidden />}
+                        </span>
+                        <span className="flex-1">
+                            <span className="block font-medium text-sm text-foreground">Is this in a High Yield Savings Account (HYSA)?</span>
+                            <span className="block text-xs text-muted-foreground">Earning 4-5% interest vs 0.01%</span>
+                        </span>
+                    </button>
                 )}
 
                 <button
                     type="submit"
-                    className="w-full p-4 bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 transition-all hover:scale-[1.02] active:scale-95 flex justify-center"
+                    className="w-full p-4 bg-primary text-primary-foreground rounded-2xl transition-all hover:brightness-110 active:scale-[0.99] font-bold text-lg flex items-center justify-center gap-2"
                 >
-                    <ArrowRight className="w-8 h-8" />
+                    Continue <ArrowRight className="w-5 h-5" aria-hidden />
                 </button>
             </form>
         </ConversationalCard>

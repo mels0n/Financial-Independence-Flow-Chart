@@ -1,14 +1,17 @@
 "use client";
 
 import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { cn } from "@/shared/lib/utils";
+import type { LucideIcon } from "lucide-react";
 
 interface ConversationalCardProps {
     title: string;
     description?: React.ReactNode;
     children?: React.ReactNode;
     mode?: "input" | "advice" | "summary";
+    /** Step icon drawn in the card header; replaces the old emoji-in-title habit */
+    icon?: LucideIcon;
     isActive?: boolean;
     className?: string;
 }
@@ -18,48 +21,61 @@ export function ConversationalCard({
     description,
     children,
     mode = "input",
+    icon: Icon,
     isActive = true,
     className
 }: ConversationalCardProps) {
     return (
         <motion.div
-            initial={{ opacity: 0, y: 50, scale: 0.95 }}
+            initial={{ opacity: 0, y: 40, scale: 0.97 }}
             animate={{
                 opacity: isActive ? 1 : 0.6,
                 y: 0,
-                scale: isActive ? 1 : 0.98,
-                filter: isActive ? "blur(0px)" : "blur(1px)"
+                scale: 1,
             }}
             exit={{ opacity: 0, y: -20 }}
-            transition={{ type: "spring", damping: 20, stiffness: 100 }}
+            transition={{ type: "spring", damping: 22, stiffness: 260 }}
             className={cn(
-                "w-full max-w-2xl mx-auto mb-6 p-8 rounded-[2rem] transition-colors duration-200",
+                "w-full max-w-2xl mx-auto mb-6 p-6 sm:p-8 rounded-3xl border",
                 mode === "advice"
-                    ? "bg-primary/10 border-2 border-primary/20 dark:bg-primary/5 dark:border-primary/20"
-                    : "bg-white dark:bg-slate-900 shadow-xl shadow-slate-200/50 dark:shadow-slate-950/50",
-                "border border-slate-100 dark:border-slate-800",
+                    ? "bg-card border-primary/30 shadow-[0_16px_48px_-16px_hsl(var(--primary)/0.25)]"
+                    : "bg-card border-border shadow-[0_16px_48px_-24px_hsl(var(--background))]",
                 className
             )}
         >
             <div className="space-y-4">
-                <motion.h2
-                    className={cn(
-                        "text-2xl md:text-3xl font-bold tracking-tight",
-                        mode === "advice" ? "text-primary" : "text-slate-900 dark:text-white"
+                <div className="flex items-start gap-4">
+                    {Icon && (
+                        <span
+                            aria-hidden
+                            className={cn(
+                                "mt-1 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border",
+                                mode === "advice"
+                                    ? "border-primary/40 bg-primary/10 text-primary"
+                                    : "border-border bg-secondary text-foreground"
+                            )}
+                        >
+                            <Icon className="h-5 w-5" strokeWidth={2.25} />
+                        </span>
                     )}
-                >
-                    {title}
-                </motion.h2>
-
-                {description && (
-                    <p className="text-lg text-muted-foreground leading-relaxed">
-                        {description}
-                    </p>
-                )}
-
-                <div className="mt-6 pt-2">
-                    {children}
+                    <div className="space-y-2 min-w-0">
+                        <h2
+                            className={cn(
+                                "font-display text-2xl md:text-[2rem] font-bold leading-tight tracking-tight [text-wrap:balance]",
+                                mode === "advice" ? "text-primary" : "text-foreground"
+                            )}
+                        >
+                            {title}
+                        </h2>
+                        {description && (
+                            <div className="text-base md:text-lg text-muted-foreground leading-relaxed">
+                                {description}
+                            </div>
+                        )}
+                    </div>
                 </div>
+
+                {children && <div className="pt-2">{children}</div>}
             </div>
         </motion.div>
     );

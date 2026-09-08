@@ -1,12 +1,34 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Bricolage_Grotesque, Public_Sans, Spline_Sans_Mono } from "next/font/google";
 import "./globals.css";
 import { AEO } from "@/shared/lib/aeo";
 
-const inter = Inter({ subsets: ["latin"] });
+const fontSans = Public_Sans({ subsets: ["latin"], variable: "--font-sans" });
+// adjustFontFallback off: Next 14.1's font metrics table does not know this face
+const fontDisplay = Bricolage_Grotesque({ subsets: ["latin"], variable: "--font-display", adjustFontFallback: false });
+const fontMono = Spline_Sans_Mono({ subsets: ["latin"], variable: "--font-mono" });
+
+/*
+DESIGN DIRECTION CONTRACT (financial-quest redesign, 2026-09-07)
+THESIS: An arcade ledger. A money quest where every dollar is visible, every number
+cites its IRS source, and gold appears only when earned. Refuses the pastel fintech
+card-stack and the emoji-as-reward default.
+OWN-WORLD: Deep teal-ink ground with a faint grid, electric verdigris voice,
+reserved gold for badges/milestones, emerald strictly for money-good, amber for
+caution/projected, red for genuine problems. Bricolage Grotesque display,
+Public Sans body, Spline Sans Mono tabular currency.
+STORY: The player sees their whole paycheck stacked in one bar, clears phases
+(Foundation, Protect, Grow, Optimize), earns badges, and leaves with a cited plan.
+FIRST VIEWPORT: Quest Log rail left (stacked budget bar + phase ledger + badge
+shelf), one step card center with a huge recommended number and "Show the math",
+Action Board right with progress. Primary action = the allocate button.
+FORM: Game HUD over a ledger; user-pinned direction from the approved mockup.
+FINISH: unreviewed and undocumented is unfinished; this build ends with the finish
+review, the verdict, DESIGN.md, and every shipping raster carrying its provenance.
+*/
 
 export const viewport: Viewport = {
-    themeColor: "#4f46e5",
+    themeColor: "#0b1418",
     width: "device-width",
     initialScale: 1,
 };
@@ -60,7 +82,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en" className="dark">
-            <body className={inter.className + " min-h-screen bg-background flex flex-col"}>
+            <body className={`${fontSans.variable} ${fontDisplay.variable} ${fontMono.variable} font-sans min-h-screen bg-background flex flex-col`}>
                 <script
                     type="application/ld+json"
                     dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

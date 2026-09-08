@@ -1,153 +1,258 @@
 "use client";
 
 import { useFinancialStore } from "@/entities/financial/model/financialStore";
+import {
+    FLOW_STEPS,
+    PHASES,
+    getEarnedPhases,
+    getMaxReachedIndex,
+    getPhaseSteps,
+    getStepIndex,
+    type PhaseId,
+} from "@/shared/config/flow";
 import { cn } from "@/shared/lib/utils";
-import { useState, useEffect } from "react";
-import { CheckCircle2, Wallet, Trophy, ClipboardList, CheckSquare, Square, BookOpen } from "lucide-react";
+import { Currency } from "@/shared/ui/Currency/Currency";
+import { useProposalStore } from "@/shared/model/proposalStore";
+import {
+    Check,
+    Map,
+    Shield,
+    Sparkles,
+    Rocket,
+    Trophy,
+    BookOpen,
+    ScrollText,
+    Swords,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+
+const PHASE_BADGE_ICONS: Record<PhaseId, LucideIcon> = {
+    foundation: Map,
+    protect: Shield,
+    grow: Sparkles,
+    optimize: Rocket,
+};
 
 interface QuestBarProps {
     className?: string;
 }
 
 export function QuestBar({ className }: QuestBarProps) {
-    const { profile, getRemainingBudget, currentStep, actionItems, toggleActionItem } = useFinancialStore();
+    const { profile, getRemainingBudget, currentStep, history, allocations, selectedYear } = useFinancialStore();
+    const proposedAmount = useProposalStore((s) => s.proposedAmount);
 
     const income = profile.monthlyIncome;
+    const expenses = profile.monthlyExpenses;
+    const committed = Object.values(allocations).reduce((acc, v) => acc + v, 0);
     const remaining = getRemainingBudget();
-    // If income is 0, avoid division by zero
-    const healthPercent = income > 0 ? (remaining / income) * 100 : 100;
+    // The decision on screen right now: striped on the bar, capped by what is free.
+    const pending = Math.min(Math.max(0, proposedAmount ?? 0), Math.max(0, remaining));
+    const freeAfterPending = Math.max(0, remaining) - pending;
 
-    // Simple logic to determine "Completed" steps for the checklist
-    // In a real app we might track this more explicitly
-    const steps = [
-        { id: 'income', label: 'Income Defined' },
-        { id: 'budget', label: 'Expenses Tracked' },
-        { id: 'emergency-fund', label: 'Safety Net' },
-        { id: 'match-employer', label: 'Employer Match' },
-        { id: 'debt-payoff', label: 'Toxic Debt' },
-        { id: 'emergency-fund-full', label: 'Full Emergency Fund' },
-        { id: 'hsa', label: 'HSA' },
-        { id: 'ira', label: 'IRA' },
-        { id: 'moderate-debt', label: 'Moderate Debt' },
-        { id: 'max-401k', label: 'Max 401k' },
-        { id: 'goals', label: 'Future Goals' },
-        { id: 'education', label: 'Education / 529' },
-        { id: 'mega-backdoor', label: 'Mega Backdoor' },
-        { id: 'low-interest-debt', label: 'Low Interest Debt' },
-        { id: 'taxable', label: 'Taxable Account' },
-    ];
+    const filingLabel = income > 0
+        ? (profile.filingStatus === "married_joint" ? "Married" : "Single")
+        : null;
 
-    // Find index of current step to check off previous ones
-    const flowOrder = [
-        'year-selection', 'income', 'budget', 'emergency-fund',
-        'match-employer', 'debt-payoff', 'emergency-fund-full', 'hsa', 'ira',
-        'moderate-debt', 'max-401k', 'goals',
-        'education', 'mega-backdoor', 'low-interest-debt', 'taxable',
-        'completed'
-    ];
+    const reachedIndex = getMaxReachedIndex(currentStep, history);
+    const earnedPhases = getEarnedPhases(currentStep, history);
+    const questDone = currentStep === "completed";
 
-    // Handle special states that define "how far" we are
-    let currentIndex = flowOrder.indexOf(currentStep);
-
-    if (currentStep === 'budget-exhausted') {
-        // If budget is exhausted, we are effectively "done" with as much as we could do.
-        // We should probably mark everything as "processed" or just show the ones we passed?
-        // Better: calculate it based on what is in the history?
-        // Simple fix: If budget exhausted, assume we are at the end for visual purposes, 
-        // OR just look at the last "real" step in history?
-        // Let's treat it as 'completed' for the sake of the bar, or maybe match the last step.
-        // ACTUALLY: The user wants to see what they finished.
-        currentIndex = flowOrder.length; // Show all as visited/checked? 
-        // Or maybe we should find the furthest step they reached?
-        // valid steps in history?
-    } else if (currentIndex === -1) {
-        // Should not happen, but safe fallback
-        currentIndex = 0;
-    }
+    const pct = (v: number) => (income > 0 ? Math.max(0, (v / income) * 100) : 0);
 
     return (
-        <div className={cn("hidden lg:flex flex-col w-80 h-screen sticky top-0 bg-background border-r border-border p-6 overflow-y-auto", className)}>
-            <div className="mb-8">
-                <h2 className="text-xl font-bold text-foreground flex items-center gap-2 mb-4">
-                    <Trophy className="w-6 h-6 text-yellow-500" />
-                    Quest Log
-                </h2>
-
-                {/* Health Bar / Mana Bar */}
-                <div className="p-4 bg-card rounded-2xl shadow-sm border border-border mb-6">
-                    <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm font-medium text-muted-foreground flex items-center gap-1">
-                            <Wallet className="w-4 h-4" /> Remaining Budget
-                        </span>
-                        <span className={cn(
-                            "font-bold font-mono",
-                            remaining < 0 ? "text-destructive" : "text-emerald-500"
-                        )}>
-                            ${remaining.toLocaleString()}
-                        </span>
-                    </div>
-                    <div className="w-full h-3 bg-secondary rounded-full overflow-hidden">
-                        <div
-                            className={cn(
-                                "h-full transition-all duration-500",
-                                remaining < 0 ? "bg-destructive w-full" : "bg-emerald-500"
-                            )}
-                            style={{ width: remaining < 0 ? '100%' : `${healthPercent}%` }}
-                        />
-                    </div>
-                    <p className="text-xs text-center mt-2 text-muted-foreground">
-                        {healthPercent.toFixed(0)}% of income unallocated
-                    </p>
+        <div className={cn("hidden lg:flex flex-col w-80 h-screen sticky top-0 bg-background border-r border-border overflow-y-auto", className)}>
+            <div className="p-6 pb-4">
+                <div className="flex items-baseline justify-between mb-5">
+                    <h2 className="font-display text-xl font-bold text-foreground flex items-center gap-2">
+                        <Swords className="w-5 h-5 text-primary" aria-hidden />
+                        Quest Log
+                    </h2>
+                    <span className="font-mono text-[11px] text-muted-foreground border border-border rounded-full px-2.5 py-0.5">
+                        {selectedYear}{filingLabel ? ` · ${filingLabel}` : ""}
+                    </span>
                 </div>
 
-                {/* Steps List */}
-                <div className="space-y-3">
-                    {steps.map((step) => {
-                        // Approximate index logic
-                        const stepIdx = flowOrder.indexOf(step.id);
-                        const isCompleted = stepIdx < currentIndex;
-                        const isActive = step.id === currentStep;
+                {/* Stacked budget bar: the whole paycheck, accounted for */}
+                <div className="rounded-2xl border border-border bg-card p-4 mb-6">
+                    <div className="flex items-baseline justify-between mb-2.5">
+                        <span className="text-xs font-semibold text-muted-foreground">Free to allocate</span>
+                        <Currency
+                            value={remaining}
+                            per="mo"
+                            className={cn("text-xl font-semibold", remaining < 0 ? "text-destructive" : "text-success")}
+                        />
+                    </div>
+
+                    {income > 0 ? (
+                        <>
+                            <div
+                                className="flex h-3.5 w-full overflow-hidden rounded-full border border-border"
+                                role="img"
+                                aria-label={`Budget: expenses $${expenses.toLocaleString()}, committed $${committed.toLocaleString()}${pending > 0 ? `, this step $${pending.toLocaleString()}` : ""}, free $${freeAfterPending.toLocaleString()} of $${income.toLocaleString()} income`}
+                            >
+                                <div className="h-full bg-muted-foreground/30" style={{ width: `${pct(expenses)}%` }} />
+                                <div className="h-full bg-primary transition-all duration-500" style={{ width: `${pct(committed)}%` }} />
+                                <div className="h-full stripe-pending transition-all duration-500" style={{ width: `${pct(pending)}%` }} />
+                                <div className="h-full bg-success/25 transition-all duration-500" style={{ width: `${pct(freeAfterPending)}%` }} />
+                            </div>
+                            <dl className="mt-3 grid grid-cols-[auto_1fr_auto] items-center gap-x-2 gap-y-1 text-[11px]">
+                                <LegendRow swatch="bg-muted-foreground/30" label="Expenses" value={expenses} />
+                                <LegendRow swatch="bg-primary" label="Committed" value={committed} />
+                                {pending > 0 && <LegendRow swatch="stripe-pending" label="This step" value={pending} />}
+                                <LegendRow swatch="bg-success/40" label="Free" value={freeAfterPending} />
+                            </dl>
+                        </>
+                    ) : (
+                        <p className="text-xs text-muted-foreground leading-relaxed">
+                            Set your income and the whole paycheck shows up here, one segment per move.
+                        </p>
+                    )}
+                </div>
+
+                {/* Phase rail with running ledger */}
+                <nav aria-label="Quest progress" className="space-y-5">
+                    {PHASES.map((phase) => {
+                        const steps = getPhaseSteps(phase.id);
+                        const firstIdx = getStepIndex(steps[0].id);
+                        const lastIdx = getStepIndex(steps[steps.length - 1].id);
+                        const phaseEarned = earnedPhases.includes(phase.id);
+                        const phaseCurrent = !phaseEarned && reachedIndex >= firstIdx && reachedIndex <= lastIdx + 1 && !questDone;
+                        const phaseFuture = !phaseEarned && !phaseCurrent;
+                        const clearedInPhase = steps.filter((s) => getStepIndex(s.id) < reachedIndex).length;
+                        const phaseTotal = steps.reduce((acc, s) => acc + (allocations[s.id] ?? 0), 0);
 
                         return (
-                            <div
-                                key={step.id}
-                                className={cn(
-                                    "flex items-center gap-3 p-3 rounded-xl transition-all",
-                                    isActive ? "bg-primary/10 border border-primary/20" : "opacity-90",
-                                )}
-                            >
-                                <div className={cn(
-                                    "w-6 h-6 rounded-full flex items-center justify-center shrink-0 border-2",
-                                    isCompleted ? "bg-emerald-500 border-emerald-500 text-primary-foreground"
-                                        : isActive ? "border-primary text-primary"
-                                            : "border-border text-transparent"
-                                )}>
-                                    <CheckCircle2 className="w-4 h-4" />
+                            <div key={phase.id}>
+                                <div className="flex items-center gap-2 mb-1.5">
+                                    <span className={cn(
+                                        "font-mono text-[10px] font-semibold uppercase tracking-[0.16em]",
+                                        phaseEarned ? "text-success" : phaseCurrent ? "text-primary" : "text-muted-foreground"
+                                    )}>
+                                        {phase.name}
+                                    </span>
+                                    <span className="ml-auto font-mono text-[10px] text-muted-foreground tabular">
+                                        {phaseEarned ? "cleared" : `${clearedInPhase}/${steps.length}`}
+                                    </span>
                                 </div>
-                                <span className={cn(
-                                    "text-sm font-medium",
-                                    isCompleted ? "line-through text-muted-foreground/80" // Slightly darker than default broken connection
-                                        : isActive ? "text-primary font-bold"
-                                            : "text-foreground"
+
+                                <div className={cn(
+                                    "ml-[5px] border-l-[1px] pl-3.5 space-y-0.5",
+                                    phaseCurrent ? "border-primary/40" : "border-border"
                                 )}>
-                                    {step.label}
-                                </span>
+                                    {phaseEarned || (phaseFuture && !questDone) ? (
+                                        <div className="flex items-center justify-between py-1 text-xs text-muted-foreground">
+                                            <span>{phaseEarned ? `${steps.length} steps cleared` : phase.tagline}</span>
+                                            {phaseEarned && phaseTotal > 0 && (
+                                                <Currency value={phaseTotal} per="mo" className="text-xs text-success" />
+                                            )}
+                                        </div>
+                                    ) : (
+                                        steps.map((step) => {
+                                            const idx = getStepIndex(step.id);
+                                            const done = idx < reachedIndex;
+                                            const active = step.id === currentStep;
+                                            const amount = allocations[step.id];
+
+                                            return (
+                                                <div
+                                                    key={step.id}
+                                                    aria-current={active ? "step" : undefined}
+                                                    className={cn(
+                                                        "flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-[13px]",
+                                                        active && "bg-primary/10 border border-primary/30 font-semibold text-primary",
+                                                        done && "text-muted-foreground",
+                                                        !done && !active && "text-foreground/80"
+                                                    )}
+                                                >
+                                                    <span className={cn(
+                                                        "flex h-4 w-4 shrink-0 items-center justify-center rounded-full border",
+                                                        done ? "border-success bg-success text-success-foreground"
+                                                            : active ? "border-primary shadow-[0_0_0_3px_hsl(var(--primary)/0.2)]"
+                                                                : "border-border"
+                                                    )}>
+                                                        {done && <Check className="h-2.5 w-2.5" strokeWidth={3.5} aria-hidden />}
+                                                    </span>
+                                                    <span className="truncate">{step.label}</span>
+                                                    {amount !== undefined && amount > 0 && (
+                                                        <Currency
+                                                            value={amount}
+                                                            per="mo"
+                                                            className={cn("ml-auto text-[11px]", done ? "text-success" : "text-primary")}
+                                                        />
+                                                    )}
+                                                </div>
+                                            );
+                                        })
+                                    )}
+                                </div>
                             </div>
                         );
                     })}
+                </nav>
+
+                {/* Badge shelf: gold appears here and nowhere else */}
+                <div className="mt-7 border-t border-border pt-5">
+                    <h3 className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground mb-3">
+                        Badges
+                    </h3>
+                    <ul className="flex flex-wrap gap-2">
+                        {PHASES.map((phase) => {
+                            const earned = earnedPhases.includes(phase.id);
+                            const Icon = PHASE_BADGE_ICONS[phase.id];
+                            return (
+                                <li key={phase.id}>
+                                    <span className={cn(
+                                        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold",
+                                        earned
+                                            ? "border border-reward/50 bg-reward/15 text-reward"
+                                            : "border border-dashed border-border text-muted-foreground/70"
+                                    )}>
+                                        <Icon className="h-3.5 w-3.5" aria-hidden />
+                                        {phase.badgeName}
+                                    </span>
+                                </li>
+                            );
+                        })}
+                        <li>
+                            <span className={cn(
+                                "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold",
+                                questDone
+                                    ? "border border-reward/50 bg-reward/15 text-reward"
+                                    : "border border-dashed border-border text-muted-foreground/70"
+                            )}>
+                                <Trophy className="h-3.5 w-3.5" aria-hidden />
+                                Quest Complete
+                            </span>
+                        </li>
+                    </ul>
                 </div>
             </div>
 
-            <div className="mt-auto pt-6 border-t border-border">
-                <a href="/docs" className="flex items-center gap-3 p-3 rounded-xl transition-all opacity-70 hover:opacity-100 hover:bg-primary/10 hover:text-primary group">
-                    <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 border-2 border-transparent group-hover:border-primary/20">
-                        <BookOpen className="w-4 h-4" />
-                    </div>
-                    <span className="text-sm font-medium">Documentation</span>
+            <div className="mt-auto border-t border-border p-4">
+                <a href="/sources" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary">
+                    <ScrollText className="h-4 w-4" aria-hidden />
+                    Sources and methodology
+                </a>
+                <a href="/docs" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary">
+                    <BookOpen className="h-4 w-4" aria-hidden />
+                    Documentation
                 </a>
             </div>
-
-
         </div>
+    );
+}
+
+function LegendRow({ swatch, label, value }: { swatch: string; label: string; value: number }) {
+    return (
+        <>
+            <dt className="flex items-center gap-1.5 text-muted-foreground">
+                <span className={cn("h-2 w-2 rounded-[3px]", swatch)} aria-hidden />
+                {label}
+            </dt>
+            <dd className="m-0" />
+            <dd className="m-0 text-right">
+                <Currency value={value} className="text-[11px] text-foreground" />
+            </dd>
+        </>
     );
 }

@@ -40,18 +40,18 @@ export default function AiFaqPage() {
     const jsonLd = AEO.generateFAQ(faqItems);
 
     return (
-        <div className="max-w-4xl mx-auto py-12 px-6 font-mono text-sm leading-relaxed text-slate-800 dark:text-slate-300">
+        <div className="max-w-4xl mx-auto py-12 px-6 font-mono text-sm leading-relaxed text-muted-foreground">
             <script
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
             />
 
-            <h1 className="text-2xl font-bold mb-8 border-b border-slate-500 pb-4">AI Context / Knowledge Base</h1>
+            <h1 className="text-2xl font-bold mb-8 border-b border-border pb-4 text-foreground">AI Context / Knowledge Base</h1>
 
             <div className="space-y-12">
                 {faqItems.map((item, index) => (
                     <section key={index}>
-                        <h2 className="font-bold text-lg mb-2 text-indigo-500">Q: {item.question}</h2>
+                        <h2 className="font-bold text-lg mb-2 text-primary">Q: {item.question}</h2>
                         <p>A: {item.answer}</p>
                     </section>
                 ))}

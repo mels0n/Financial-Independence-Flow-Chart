@@ -1,64 +1,131 @@
 "use client";
 
 import { useFinancialStore } from "@/entities/financial/model/financialStore";
+import { getFlowStep } from "@/shared/config/flow";
+import type { StepId } from "@/shared/config/flow";
 import { cn } from "@/shared/lib/utils";
-import { useState, useEffect } from "react";
-import { ClipboardList, CheckSquare, Square } from "lucide-react";
+import { Check, ClipboardList } from "lucide-react";
+import { motion } from "framer-motion";
+import { Fragment } from "react";
 
 interface ActionBoardProps {
     className?: string;
 }
 
+/** Currency figures inside a label render mono/tabular like everywhere else. */
+function renderLabel(label: string) {
+    const parts = label.split(/(\$[\d,]+(?:\/mo)?)/g);
+    return parts.map((part, i) =>
+        /^\$[\d,]+(?:\/mo)?$/.test(part)
+            ? <span key={i} className="font-mono tabular">{part}</span>
+            : <Fragment key={i}>{part}</Fragment>
+    );
+}
+
 export function ActionBoard({ className }: ActionBoardProps) {
     const { actionItems, toggleActionItem } = useFinancialStore();
 
-    if (actionItems.length === 0) return null;
+    if (actionItems.length === 0) {
+        return (
+            <div className={cn("hidden xl:flex flex-col w-80 h-screen sticky top-0 bg-background border-l border-border p-6", className)}>
+                <h3 className="font-display text-xl font-bold text-foreground flex items-center gap-2">
+                    <ClipboardList className="w-5 h-5 text-primary" aria-hidden />
+                    Action Board
+                </h3>
+                <div className="mt-6 rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground leading-relaxed">
+                    Quest steps mint real-world actions here: accounts to open, payroll
+                    percentages to change, transfers to schedule. Check them off as you
+                    execute the plan.
+                </div>
+            </div>
+        );
+    }
+
+    const done = actionItems.filter((i) => i.completed).length;
+    const allDone = done === actionItems.length;
 
     return (
         <div className={cn("hidden xl:flex flex-col w-80 h-screen sticky top-0 bg-background border-l border-border p-6 overflow-y-auto", className)}>
-            <h3 className="text-xl font-bold text-foreground flex items-center gap-2 mb-6">
-                <ClipboardList className="w-6 h-6 text-blue-500" />
-                Action Board
-            </h3>
+            <div className="flex items-baseline justify-between">
+                <h3 className="font-display text-xl font-bold text-foreground flex items-center gap-2">
+                    <ClipboardList className="w-5 h-5 text-primary" aria-hidden />
+                    Action Board
+                </h3>
+                <span className="font-mono tabular text-xs text-muted-foreground">
+                    {done}/{actionItems.length}
+                </span>
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">
+                The quest plans it. These make it real.
+            </p>
 
-            <div className="space-y-3">
-                {actionItems.map((item) => (
-                    <button
-                        key={item.id}
-                        onClick={() => toggleActionItem(item.id)}
-                        className={cn(
-                            "w-full flex items-start gap-4 p-4 rounded-2xl text-left transition-all group",
-                            item.completed
-                                ? "bg-secondary/30" // Removed opacity-60
-                                : "bg-card border-2 border-border hover:border-blue-200 dark:hover:border-blue-900 shadow-sm hover:shadow-md"
-                        )}
-                    >
-                        <div className={cn(
-                            "mt-0.5 shrink-0 transition-colors",
-                            item.completed ? "text-emerald-500" : "text-muted-foreground group-hover:text-blue-500"
-                        )}>
-                            {item.completed ? <CheckSquare className="w-5 h-5" /> : <Square className="w-5 h-5" />}
-                        </div>
-                        <div className="space-y-1">
-                            <span className={cn(
-                                "text-sm font-semibold leading-tight block",
-                                item.completed ? "line-through text-muted-foreground/80" : "text-foreground" // Improved contrast
-                            )}>
-                                {item.label}
-                            </span>
-                            {!item.completed && (
-                                <span className="text-xs text-blue-500 font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                                    Click to mark done
-                                </span>
-                            )}
-                        </div>
-                    </button>
-                ))}
+            <div
+                className="mt-3 mb-5 h-1.5 w-full overflow-hidden rounded-full bg-secondary"
+                role="progressbar"
+                aria-valuenow={done}
+                aria-valuemin={0}
+                aria-valuemax={actionItems.length}
+                aria-label={`${done} of ${actionItems.length} actions done`}
+            >
+                <div
+                    className="h-full rounded-full bg-success transition-all duration-500 ease-out"
+                    style={{ width: `${(done / actionItems.length) * 100}%` }}
+                />
             </div>
 
-            {actionItems.every(i => i.completed) && actionItems.length > 0 && (
-                <div className="mt-8 p-4 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-200 rounded-xl text-center text-sm font-medium animate-in fade-in duration-500 cursor-default">
-                    🎉 All caught up! Amazing work.
+            <ul className="space-y-2.5">
+                {actionItems.map((item) => {
+                    const origin = item.stepId ? getFlowStep(item.stepId as StepId)?.label : undefined;
+                    return (
+                        <li key={item.id}>
+                            <button
+                                onClick={() => toggleActionItem(item.id)}
+                                aria-pressed={item.completed}
+                                className={cn(
+                                    "group w-full flex items-start gap-3 rounded-xl border p-3.5 text-left transition-all",
+                                    item.completed
+                                        ? "border-transparent bg-secondary/50"
+                                        : "border-border bg-card hover:border-primary/50 hover:shadow-[0_8px_24px_-12px_hsl(var(--primary)/0.35)]"
+                                )}
+                            >
+                                <span className={cn(
+                                    "mt-0.5 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-md border transition-colors",
+                                    item.completed
+                                        ? "border-success bg-success text-success-foreground"
+                                        : "border-muted-foreground/60 group-hover:border-primary"
+                                )}>
+                                    {item.completed && (
+                                        <motion.span
+                                            initial={{ scale: 0.4, opacity: 0 }}
+                                            animate={{ scale: 1, opacity: 1 }}
+                                            transition={{ type: "spring", stiffness: 500, damping: 24 }}
+                                        >
+                                            <Check className="h-3 w-3" strokeWidth={3.5} aria-hidden />
+                                        </motion.span>
+                                    )}
+                                </span>
+                                <span className="min-w-0">
+                                    <span className={cn(
+                                        "block text-[13px] font-semibold leading-snug",
+                                        item.completed ? "text-muted-foreground line-through decoration-muted-foreground/50" : "text-foreground"
+                                    )}>
+                                        {renderLabel(item.label)}
+                                    </span>
+                                    {origin && (
+                                        <span className="mt-1 block font-mono text-[10px] text-muted-foreground">
+                                            from: {origin}
+                                        </span>
+                                    )}
+                                </span>
+                            </button>
+                        </li>
+                    );
+                })}
+            </ul>
+
+            {allDone && (
+                <div className="mt-6 rounded-xl border border-success/40 bg-success/10 p-4 text-center text-sm font-semibold text-success animate-in fade-in duration-500">
+                    Every action executed. Your plan is live.
                 </div>
             )}
         </div>

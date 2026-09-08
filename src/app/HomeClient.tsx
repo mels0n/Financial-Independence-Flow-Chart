@@ -19,17 +19,19 @@ const ActionBoard = dynamic(() => import("@/widgets/ActionBoard/ActionBoard").th
     ssr: false,
     loading: () => <div className="hidden xl:flex flex-col w-80 h-screen sticky top-0 bg-background/50 border-l border-border p-6" />
 });
+const MilestoneToast = dynamic(() => import("@/widgets/MilestoneToast/MilestoneToast").then((mod) => mod.MilestoneToast), {
+    ssr: false,
+});
 
 export function HomeClient() {
     const [isQuestLogOpen, setIsQuestLogOpen] = useState(false);
     const [isActionBoardOpen, setIsActionBoardOpen] = useState(false);
     const { actionItems } = useFinancialStore();
 
-    // Calculate pending action items
     const pendingActionItems = actionItems.filter(i => !i.completed).length;
 
     return (
-        <main className="flex min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 transition-colors duration-300 pt-16 lg:pt-0">
+        <main className="flex min-h-screen bg-background text-foreground pt-16 lg:pt-0">
             <MobileHeader
                 onOpenQuestLog={() => setIsQuestLogOpen(true)}
                 onOpenActionBoard={() => setIsActionBoardOpen(true)}
@@ -45,17 +47,21 @@ export function HomeClient() {
             </Sheet>
 
             <QuestBar />
-            <div className="flex-1 flex flex-col items-center justify-start pt-8 lg:pt-24 pb-12 px-4 overflow-y-auto">
-                <div className="w-full max-w-5xl items-center justify-center font-mono text-sm lg:flex mb-8 lg:mb-12">
-                    <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-center bg-gradient-to-r from-indigo-500 to-indigo-600 dark:from-indigo-400 dark:to-indigo-300 bg-clip-text text-transparent drop-shadow-sm">
+
+            <div className="quest-ground flex-1 flex flex-col items-center justify-start pt-8 lg:pt-16 pb-12 px-4 overflow-y-auto">
+                <header className="w-full max-w-2xl mx-auto mb-8 lg:mb-10 text-center">
+                    <h1 className="font-display text-4xl md:text-5xl font-bold tracking-tight text-foreground [text-wrap:balance]">
                         Financial Quest
                     </h1>
-                </div>
+                    <p className="mt-2 text-sm md:text-base text-muted-foreground">
+                        Every dollar gets a job. Every number shows its math.
+                    </p>
+                </header>
 
                 <QuestFlow />
 
-                <div className="w-full max-w-2xl mx-auto my-8 p-4 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-900/50 rounded-xl text-center">
-                    <p className="text-xs text-amber-800 dark:text-amber-200/80">
+                <div className="w-full max-w-2xl mx-auto my-8 rounded-xl border border-warning/30 bg-warning/10 p-4 text-center">
+                    <p className="text-xs text-warning leading-relaxed">
                         <strong>Disclaimer:</strong> This application is for educational purposes only. It is not financial, legal, or tax advice.
                         The figures (tax brackets, limits) are based on official IRS data.
                         Consult a CPA or fiduciary for personalized advice.
@@ -64,7 +70,9 @@ export function HomeClient() {
 
                 <Footer />
             </div>
+
             <ActionBoard />
+            <MilestoneToast />
         </main>
     );
 }

@@ -1,6 +1,8 @@
 "use client";
 
 import { Menu, ClipboardList } from "lucide-react";
+import { useFinancialStore } from "@/entities/financial/model/financialStore";
+import { Currency } from "@/shared/ui/Currency/Currency";
 import { cn } from "@/shared/lib/utils";
 
 interface MobileHeaderProps {
@@ -10,28 +12,47 @@ interface MobileHeaderProps {
 }
 
 export function MobileHeader({ onOpenQuestLog, onOpenActionBoard, actionItemsCount = 0 }: MobileHeaderProps) {
+    const { profile, getRemainingBudget } = useFinancialStore();
+    const hasIncome = profile.monthlyIncome > 0;
+    const remaining = getRemainingBudget();
+
     return (
-        <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-background/80 backdrop-blur-md border-b border-border z-40 px-4 flex items-center justify-between">
+        <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-background/85 backdrop-blur-md border-b border-border z-40 px-4 flex items-center justify-between">
             <button
                 onClick={onOpenQuestLog}
                 className="p-2 -ml-2 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted transition-colors"
                 aria-label="Open Quest Log"
             >
-                <Menu className="w-6 h-6" />
+                <Menu className="w-6 h-6" aria-hidden />
             </button>
 
-            <span className="font-bold text-lg bg-gradient-to-r from-indigo-500 to-indigo-600 bg-clip-text text-transparent">
-                Financial Quest
-            </span>
+            {hasIncome ? (
+                <div className="text-center leading-tight">
+                    <span className="block font-mono text-[9px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                        Free to allocate
+                    </span>
+                    <Currency
+                        value={remaining}
+                        per="mo"
+                        className={cn("text-lg font-semibold", remaining < 0 ? "text-destructive" : "text-success")}
+                    />
+                </div>
+            ) : (
+                <span className="font-display font-bold text-lg text-foreground">
+                    Financial Quest
+                </span>
+            )}
 
             <button
                 onClick={onOpenActionBoard}
                 className="p-2 -mr-2 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted transition-colors relative"
-                aria-label="Open Action Board"
+                aria-label={`Open Action Board${actionItemsCount > 0 ? ` (${actionItemsCount} pending)` : ""}`}
             >
-                <ClipboardList className="w-6 h-6" />
+                <ClipboardList className="w-6 h-6" aria-hidden />
                 {actionItemsCount > 0 && (
-                    <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-background" />
+                    <span className="absolute top-1 right-1 min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full bg-primary font-mono text-[9px] font-bold text-primary-foreground ring-2 ring-background">
+                        {actionItemsCount}
+                    </span>
                 )}
             </button>
         </header>

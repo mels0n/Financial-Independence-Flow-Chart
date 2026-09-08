@@ -1,9 +1,11 @@
 "use client";
 
 import { useFinancialStore } from "@/entities/financial/model/financialStore";
-import { getFinancialConstants } from "@/shared/config/financial-constants";
+import { ASSUMPTIONS, getFinancialConstants, getYearMeta } from "@/shared/config/financial-constants";
 import { ConversationalCard } from "@/shared/ui/ConversationalCard/ConversationalCard";
-import { ArrowRight, Receipt, PiggyBank, CalendarClock, Cloud } from "lucide-react";
+import { RecommendationBlock, SourceFootnote } from "@/shared/ui/RecommendationBlock/RecommendationBlock";
+import { Currency } from "@/shared/ui/Currency/Currency";
+import { ArrowRight, Receipt, CalendarClock, Cloud, HeartPulse, Check, AlertTriangle } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/shared/lib/utils";
 
@@ -12,35 +14,32 @@ export function HsaStep() {
     const [stepPhase, setStepPhase] = useState<"intro" | "ask-eligible" | "calc" | "strategy">("intro");
     const [alreadyContributed, setAlreadyContributed] = useState(0);
 
-    // Constants
-    const { self: limitSelf, family: limitFamily } = getFinancialConstants(selectedYear).hsa;
+    const hsaLimits = getFinancialConstants(selectedYear).hsa;
+    const { self: limitSelf, family: limitFamily } = hsaLimits;
+    const yearMeta = getYearMeta(selectedYear);
 
     const [coverageType, setCoverageType] = useState<"self" | "family">("self");
 
-    // Date Logic
+    // If planning a future year we have all 12 months; the current year gets what's left.
     const today = new Date();
     const currentYear = today.getFullYear();
     const targetYear = parseInt(selectedYear);
-    const currentMonth = today.getMonth(); // 0 = Jan, 11 = Dec
-
-    // If we are planning for a future year, we have 12 months.
-    // If we are planning for the current year, we have remaining months.
+    const currentMonth = today.getMonth();
     const isFutureYear = targetYear > currentYear;
     const monthsRemaining = isFutureYear ? 12 : Math.max(1, 12 - currentMonth);
 
     const annualLimit = coverageType === 'self' ? limitSelf : limitFamily;
     const remainingToMax = Math.max(0, annualLimit - alreadyContributed);
+    const rawRemaining = annualLimit - alreadyContributed;
 
-    // Monthly max based on REMAINING space vs REMAINING time
     const aggressiveMonthly = Math.round(remainingToMax / monthsRemaining);
-    // Standard monthly is just annual / 12 (informational)
     const standardMonthly = Math.round(annualLimit / 12);
 
     const remainingBudget = getRemainingBudget();
     const recommended = Math.min(remainingBudget, aggressiveMonthly);
 
-    // Tax Savings Calc (Est 22% bracket + 7.65% FICA)
-    const annualTaxSavings = Math.round(remainingToMax * 0.2965);
+    const combinedRate = ASSUMPTIONS.marginalFederalRate.value + ASSUMPTIONS.ficaRate.value;
+    const annualTaxSavings = Math.round(remainingToMax * combinedRate);
 
     const handleEligible = (y: boolean) => {
         setProfileBase({ hasHsaEligiblePlan: y });
@@ -58,35 +57,38 @@ export function HsaStep() {
         setStepPhase('strategy');
     };
 
-    // 1. Educational Intro
     if (stepPhase === "intro") {
         return (
             <ConversationalCard
-                title="The Super Account 🦸‍♂️"
-                description="Before we talk numbers, let's unlock a secret weapon."
+                title="The super account"
+                description="Before we talk numbers, there is a secret weapon to unlock."
+                icon={HeartPulse}
             >
-                <div className="space-y-6">
-                    <p className="text-lg text-foreground">
+                <div className="space-y-5">
+                    <p className="text-base text-foreground">
                         Most people think an <strong>HSA (Health Savings Account)</strong> is just for paying doctors.
+                        It is actually the strongest account in the US tax code.
                     </p>
-                    <div className="p-4 bg-primary/10 border border-primary/20 rounded-xl">
-                        <h4 className="font-bold text-primary mb-2 flex items-center gap-2">
-                            <span className="text-2xl">🦄</span> It's actually a Tax Unicorn.
-                        </h4>
-                        <ul className="space-y-2 text-sm text-foreground">
-                            <li className="flex gap-2">✅ <strong>Tax Deduction</strong> (Instant discount on taxes)</li>
-                            <li className="flex gap-2">✅ <strong>Tax-Free Growth</strong> (Investments grow like an IRA)</li>
-                            <li className="flex gap-2">✅ <strong>Tax-Free Withdrawal</strong> (For medical expenses)</li>
-                        </ul>
-                    </div>
-                    <p className="text-muted-foreground text-sm">
-                        It is the <em>only</em> account in the US tax code with all three benefits. But you need a specific type of health insurance to open one.
+                    <ul className="space-y-2.5 rounded-2xl border border-primary/25 bg-primary/5 p-4">
+                        {[
+                            ["Tax deduction going in", "an instant discount on this year's taxes"],
+                            ["Tax-free growth", "investments compound like an IRA"],
+                            ["Tax-free coming out", "for medical expenses, at any age"],
+                        ].map(([head, tail]) => (
+                            <li key={head} className="flex gap-2.5 text-sm text-foreground">
+                                <Check className="mt-0.5 h-4 w-4 shrink-0 text-success" strokeWidth={3} aria-hidden />
+                                <span><strong>{head}</strong>: {tail}</span>
+                            </li>
+                        ))}
+                    </ul>
+                    <p className="text-sm text-muted-foreground">
+                        No other account has all three. The catch: you need a specific type of health insurance to open one.
                     </p>
                     <button
                         onClick={() => setStepPhase("ask-eligible")}
-                        className="w-full p-4 bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 transition-all font-bold text-lg flex items-center justify-center gap-2"
+                        className="w-full p-4 bg-primary text-primary-foreground rounded-2xl transition-all hover:brightness-110 active:scale-[0.99] font-bold text-lg flex items-center justify-center gap-2"
                     >
-                        See if I qualify <ArrowRight className="w-5 h-5" />
+                        See if I qualify <ArrowRight className="w-5 h-5" aria-hidden />
                     </button>
                 </div>
             </ConversationalCard>
@@ -96,19 +98,26 @@ export function HsaStep() {
     if (stepPhase === "ask-eligible") {
         return (
             <ConversationalCard
-                title="The Eligibility Check"
+                title="The eligibility check"
                 description="Do you have a High Deductible Health Plan (HDHP)?"
+                icon={HeartPulse}
             >
                 <div className="space-y-6">
-                    <p className="text-muted-foreground">
-                        This usually means your insurance deductible is at least <strong>$1,700 (Self)</strong> or <strong>$3,400 (Family)</strong>.
-                        <br /><br />
-                        Commonly found in employer plans as the "low premium" option with an HSA attached.
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                        For {selectedYear} this means your insurance deductible is at least{" "}
+                        <strong className="text-foreground">${hsaLimits.hdhpMinDeductibleSelf.toLocaleString()} (self)</strong> or{" "}
+                        <strong className="text-foreground">${hsaLimits.hdhpMinDeductibleFamily.toLocaleString()} (family)</strong>.
+                        It is commonly the &quot;low premium&quot; option in employer plans, with an HSA attached.
                     </p>
+                    <SourceFootnote source={{ ...yearMeta.sources.hsa, projected: yearMeta.status === "projected" }} />
 
                     <div className="grid grid-cols-2 gap-4">
-                        <button onClick={() => handleEligible(true)} className="p-6 bg-card border-2 border-border rounded-2xl hover:border-primary hover:bg-primary/5 transition-all text-xl font-bold text-foreground">Yes, I do</button>
-                        <button onClick={() => handleEligible(false)} className="p-6 bg-card border-2 border-border rounded-2xl hover:border-border transition-all text-xl font-bold text-foreground">No / Not sure</button>
+                        <button onClick={() => handleEligible(true)} className="p-6 bg-card border-2 border-border rounded-2xl hover:border-primary hover:bg-primary/5 transition-all text-lg font-bold text-foreground">
+                            Yes, I do
+                        </button>
+                        <button onClick={() => handleEligible(false)} className="p-6 bg-card border-2 border-border rounded-2xl hover:border-muted-foreground/40 transition-all text-lg font-bold text-foreground">
+                            No / Not sure
+                        </button>
                     </div>
                 </div>
             </ConversationalCard>
@@ -116,58 +125,59 @@ export function HsaStep() {
     }
 
     if (stepPhase === "calc") {
-        const isMaxed = remainingToMax <= 0;
-        const isOverContributed = remainingToMax < 0;
+        const isMaxed = remainingToMax <= 0 && rawRemaining <= 0;
+        const isOverContributed = rawRemaining < 0;
 
-        // Lump Sum Logic
         const excessCash = profile.excessCash || 0;
-        const canLumpSum = !isMaxed && excessCash >= remainingToMax;
+        const canLumpSum = !isMaxed && excessCash >= remainingToMax && remainingToMax > 0;
 
         const description = isMaxed
-            ? `You have already hit the ${selectedYear} limit. Great job.`
+            ? `You already hit the ${selectedYear} limit. Outstanding.`
             : isFutureYear
-                ? `Planning for ${selectedYear}. You have the full 12 months.`
-                : `It is month ${currentMonth + 1} of ${currentYear}. To hit the max, you need to sprint.`;
+                ? `Planning for ${selectedYear}: you have the full 12 months.`
+                : `It is month ${currentMonth + 1} of ${currentYear}. To hit the max, you sprint.`;
 
         return (
             <ConversationalCard
-                title={isMaxed ? "You nailed it! 🎉" : "Max it out."}
+                title={isMaxed ? "HSA: maxed" : "Max it out"}
                 description={description}
+                icon={HeartPulse}
             >
-                <div className="space-y-6">
+                <div className="space-y-5">
                     <div className="flex gap-4 p-4 bg-secondary rounded-xl items-center justify-between">
                         <div>
-                            <label className="text-xs text-muted-foreground block mb-1">Coverage</label>
+                            <label htmlFor="hsa-coverage" className="text-xs text-muted-foreground block mb-1">Coverage</label>
                             <select
+                                id="hsa-coverage"
                                 value={coverageType}
-                                onChange={(e) => setCoverageType(e.target.value as any)}
+                                onChange={(e) => setCoverageType(e.target.value as "self" | "family")}
                                 className="bg-transparent font-bold text-lg text-foreground border-b-2 border-primary focus:outline-none cursor-pointer"
                             >
-                                <option value="self" className="text-black dark:text-white bg-white dark:bg-slate-900">Self Only</option>
-                                <option value="family" className="text-black dark:text-white bg-white dark:bg-slate-900">Family Plan</option>
+                                <option value="self" className="bg-popover text-popover-foreground">Self only</option>
+                                <option value="family" className="bg-popover text-popover-foreground">Family plan</option>
                             </select>
                         </div>
                         <div className="text-right">
-                            <div className="text-xs text-muted-foreground">Annual Limit</div>
-                            <div className="text-xl font-bold text-foreground">${annualLimit.toLocaleString()}</div>
+                            <div className="text-xs text-muted-foreground">{selectedYear} limit</div>
+                            <Currency value={annualLimit} className="text-xl font-bold text-foreground" />
                         </div>
                     </div>
 
-                    {/* Already Contributed Input */}
-                    <div className="p-4 border border-border rounded-xl flex items-center justify-between">
+                    <div className="p-4 border border-border rounded-xl flex items-center justify-between gap-4">
                         <div>
-                            <label className="text-sm font-medium text-foreground">Already contributed (or setup to contribute)?</label>
-                            <p className="text-xs text-muted-foreground">Includes employer match</p>
+                            <label htmlFor="hsa-contributed" className="text-sm font-medium text-foreground">Already contributed (or set up to contribute)?</label>
+                            <p className="text-xs text-muted-foreground">Includes employer contributions</p>
                         </div>
-                        <div className="relative w-32">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                        <div className="relative w-32 shrink-0">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden>$</span>
                             <input
+                                id="hsa-contributed"
                                 type="number"
                                 value={alreadyContributed || ''}
                                 onChange={(e) => setAlreadyContributed(Number(e.target.value))}
                                 className={cn(
-                                    "w-full pl-6 pr-3 py-2 bg-secondary rounded-lg font-bold text-right focus:outline-none focus:ring-2",
-                                    isOverContributed ? "text-red-500 border-red-500 ring-red-500 focus:ring-red-500" : "focus:ring-primary/50"
+                                    "w-full pl-6 pr-3 py-2 bg-secondary rounded-lg font-mono tabular font-bold text-right focus:outline-none focus:ring-2",
+                                    isOverContributed ? "text-destructive focus:ring-destructive" : "text-foreground focus:ring-primary/50"
                                 )}
                                 placeholder="0"
                             />
@@ -175,88 +185,80 @@ export function HsaStep() {
                     </div>
 
                     {isOverContributed && (
-                        <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl flex items-start gap-3">
-                            <div className="text-2xl">🚨</div>
+                        <div className="p-4 bg-destructive/10 border border-destructive/40 rounded-xl flex items-start gap-3">
+                            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-destructive" aria-hidden />
                             <div>
-                                <h4 className="font-bold text-red-800 dark:text-red-200">Over-Contribution Warning</h4>
-                                <p className="text-sm text-red-700 dark:text-red-300">
-                                    You have exceeded the limit by <strong>${Math.abs(remainingToMax).toLocaleString()}</strong>.
-                                    You must contact your provider to withdraw this "excess contribution" before tax day to avoid a 6% penalty.
+                                <h4 className="font-bold text-destructive">Over-contribution warning</h4>
+                                <p className="text-sm text-foreground/90">
+                                    You have exceeded the limit by <Currency value={Math.abs(rawRemaining)} className="text-sm font-bold" />.
+                                    Contact your provider to withdraw the excess before tax day to avoid a 6% penalty.
                                 </p>
                             </div>
                         </div>
                     )}
 
-                    {!isMaxed && (
-                        <>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="p-4 border border-border rounded-xl text-center opacity-70">
-                                    <div className="text-sm text-muted-foreground mb-1">Standard / Month</div>
-                                    <div className="text-xl font-bold text-foreground">${standardMonthly}</div>
-                                </div>
-                                <div className="p-4 border border-primary/30 bg-primary/5 rounded-xl text-center relative overflow-hidden">
-                                    <div className="absolute top-0 right-0 bg-primary text-[10px] text-primary-foreground px-2 py-0.5 rounded-bl-lg">CATCH UP</div>
-                                    <div className="text-sm text-muted-foreground mb-1">To Max by Dec 31</div>
-                                    <div className="text-2xl font-bold text-primary">${aggressiveMonthly}</div>
-                                </div>
-                            </div>
-
-                            <div className="p-4 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900 rounded-xl">
-                                <div className="flex gap-2 items-center mb-2">
-                                    <PiggyBank className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                                    <span className="font-bold text-emerald-800 dark:text-emerald-300">Potential Tax Savings</span>
-                                </div>
-                                <p className="text-sm text-emerald-700 dark:text-emerald-400">
-                                    Maxing the <strong>remaining ${remainingToMax.toLocaleString()}</strong> could save you approx <strong>${annualTaxSavings.toLocaleString()}</strong> immediately.
-                                </p>
-                            </div>
-                        </>
-                    )}
-
-                    <div className="flex flex-col gap-2">
-                        {isMaxed ? (
+                    {!isMaxed && !isOverContributed && (
+                        <RecommendationBlock
+                            amount={recommended}
+                            benefit={
+                                <span>
+                                    <span className="block font-mono tabular text-base font-bold text-success">≈ ${annualTaxSavings.toLocaleString()} saved</span>
+                                    estimated tax reduction this year
+                                </span>
+                            }
+                            math={[
+                                { label: `${selectedYear} HSA limit (${coverageType === 'self' ? 'self-only' : 'family'})`, value: `$${annualLimit.toLocaleString()}` },
+                                { label: "Already contributed", value: `− $${alreadyContributed.toLocaleString()}` },
+                                { label: `Months left in ${selectedYear}`, value: `÷ ${monthsRemaining}` },
+                                { label: "Monthly to hit the max", value: `$${aggressiveMonthly.toLocaleString()}`, total: true },
+                                { label: "Your free budget (the cap)", value: `$${remainingBudget.toLocaleString()}` },
+                                { label: `Tax saved: $${remainingToMax.toLocaleString()} × ${Math.round(combinedRate * 1000) / 10}%`, value: `≈ $${annualTaxSavings.toLocaleString()}` },
+                            ]}
+                            assumptions={`Assumes the ${ASSUMPTIONS.marginalFederalRate.value * 100}% federal bracket plus ${ASSUMPTIONS.ficaRate.value * 100}% FICA (payroll HSA contributions avoid both). The steady-pace alternative is $${standardMonthly.toLocaleString()}/mo across a full year.`}
+                            source={{ ...yearMeta.sources.hsa, projected: yearMeta.status === "projected" }}
+                        >
+                            {canLumpSum ? (
+                                <button
+                                    onClick={() => {
+                                        setProfileBase({ excessCash: excessCash - remainingToMax });
+                                        useFinancialStore.getState().addActionItem({
+                                            id: 'hsa-lump-sum',
+                                            stepId: 'hsa',
+                                            label: `Transfer $${remainingToMax.toLocaleString()} from Savings to HSA`
+                                        });
+                                        setStepPhase("strategy");
+                                    }}
+                                    className="w-full p-4 bg-success text-success-foreground rounded-2xl transition-all hover:brightness-110 active:scale-[0.99] font-bold text-base flex items-center justify-center gap-2"
+                                >
+                                    Fund <Currency value={remainingToMax} className="font-bold" perClassName="text-success-foreground/70" /> now from surplus cash
+                                    <ArrowRight className="w-5 h-5" aria-hidden />
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={confirmAllocation}
+                                    disabled={recommended <= 0}
+                                    className="w-full p-4 bg-primary text-primary-foreground rounded-2xl transition-all hover:brightness-110 active:scale-[0.99] disabled:opacity-50 font-bold text-base"
+                                >
+                                    Allocate <Currency value={recommended} per="mo" className="font-bold" perClassName="text-primary-foreground/70" />
+                                </button>
+                            )}
                             <button
                                 onClick={() => nextStep()}
-                                className="w-full p-4 bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 transition-all font-bold text-lg"
+                                className="mx-auto text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground rounded"
                             >
-                                Awesome. Next Step <ArrowRight className="inline w-5 h-5 ml-2" />
+                                Skip this step
                             </button>
-                        ) : (
-                            <>
-                                {canLumpSum ? (
-                                    <button
-                                        onClick={() => {
-                                            // Deduct from excess cash?
-                                            setProfileBase({ excessCash: excessCash - remainingToMax });
-                                            useFinancialStore.getState().addActionItem({
-                                                id: 'hsa-lump-sum',
-                                                stepId: 'hsa',
-                                                label: `Transfer $${remainingToMax.toLocaleString()} from Savings to HSA`
-                                            });
-                                            setStepPhase("strategy");
-                                        }}
-                                        className="w-full p-4 bg-emerald-600 text-white rounded-2xl hover:bg-emerald-700 transition-all font-bold text-lg flex items-center justify-center gap-2"
-                                    >
-                                        <div className="text-left">
-                                            <div className="text-xs opacity-90 uppercase tracking-wider">Lump Sum Available</div>
-                                            <div>Fund ${remainingToMax.toLocaleString()} from Savings</div>
-                                        </div>
-                                        <ArrowRight className="w-6 h-6" />
-                                    </button>
-                                ) : (
-                                    <button
-                                        onClick={confirmAllocation}
-                                        className="w-full p-4 bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 transition-all font-bold text-lg"
-                                    >
-                                        Allocate ${recommended.toLocaleString()}/mo
-                                    </button>
-                                )}
-                                <p className="text-xs text-center text-muted-foreground">
-                                    Based on remaining budget: ${remainingBudget.toLocaleString()}
-                                </p>
-                            </>
-                        )}
-                    </div>
+                        </RecommendationBlock>
+                    )}
+
+                    {isMaxed && (
+                        <button
+                            onClick={() => nextStep()}
+                            className="w-full p-4 bg-primary text-primary-foreground rounded-2xl transition-all hover:brightness-110 active:scale-[0.99] font-bold text-lg flex items-center justify-center gap-2"
+                        >
+                            Next step <ArrowRight className="w-5 h-5" aria-hidden />
+                        </button>
+                    )}
                 </div>
             </ConversationalCard>
         );
@@ -264,64 +266,54 @@ export function HsaStep() {
 
     return (
         <ConversationalCard
-            title="The 'Shoebox' Strategy 📑"
-            description="The HSA is the only account that is Triple Tax Advantaged. Don't spend it on Tylenol yet."
+            title="The shoebox strategy"
+            description="Your HSA is now a stealth retirement account. Do not spend it on Tylenol yet."
+            icon={Receipt}
             mode="advice"
         >
             <div className="space-y-6">
                 <div className="space-y-4">
-                    <div className="flex gap-3 items-start">
-                        <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg text-indigo-600 dark:text-indigo-400 mt-1">
-                            <CalendarClock className="w-5 h-5" />
+                    {[
+                        {
+                            icon: CalendarClock,
+                            head: "1. Pay cash now",
+                            body: "Cover medical costs out of pocket if you can afford it, and let the HSA compound untouched.",
+                        },
+                        {
+                            icon: Cloud,
+                            head: "2. Keep a digital shoebox",
+                            body: "Save every EOB and receipt to Google Drive, iCloud, or Dropbox. Label the folder \"HSA receipts\". They never expire.",
+                        },
+                        {
+                            icon: Receipt,
+                            head: "3. Reimburse yourself later",
+                            body: "In 20 years, reimburse yourself for that old MRI, tax-free. A lifetime emergency fund, built from receipts.",
+                        },
+                    ].map(({ icon: Icon, head, body }) => (
+                        <div key={head} className="flex gap-3 items-start">
+                            <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-primary/30 bg-primary/10 text-primary">
+                                <Icon className="w-4 h-4" aria-hidden />
+                            </span>
+                            <div>
+                                <h4 className="font-bold text-foreground">{head}</h4>
+                                <p className="text-sm text-muted-foreground">{body}</p>
+                            </div>
                         </div>
-                        <div>
-                            <h4 className="font-bold text-foreground">1. Pay with Cash Now</h4>
-                            <p className="text-sm text-muted-foreground">Pay for medical expenses out of pocket if you can afford it. Let your HSA grow tax-free like an IRA.</p>
-                        </div>
-                    </div>
-
-                    <div className="flex gap-3 items-start">
-                        <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg text-indigo-600 dark:text-indigo-400 mt-1">
-                            <Cloud className="w-5 h-5" />
-                        </div>
-                        <div>
-                            <h4 className="font-bold text-foreground">2. Digital Shoebox</h4>
-                            <p className="text-sm text-muted-foreground">
-                                Save every EOB and receipt to <strong>Google Drive, iCloud, or Dropbox</strong>.
-                                Label them "HSA Receipts". They never expire.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="flex gap-3 items-start">
-                        <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg text-indigo-600 dark:text-indigo-400 mt-1">
-                            <Receipt className="w-5 h-5" />
-                        </div>
-                        <div>
-                            <h4 className="font-bold text-foreground">3. Reimburse Yourself Later</h4>
-                            <p className="text-sm text-muted-foreground">
-                                In 20 years, when you need cash, "reimburse" yourself for that MRI from a prior year tax-free.
-                                You basically get a tax-free emergency fund for life.
-                            </p>
-                        </div>
-                    </div>
+                    ))}
                 </div>
 
                 <button
                     onClick={() => {
-                        // Add Action Item for offline task
-                        if (typeof useFinancialStore.getState().addActionItem === 'function') {
-                            useFinancialStore.getState().addActionItem({
-                                id: 'hsa-shoebox',
-                                stepId: 'hsa',
-                                label: 'Set up Google Drive folder for Medical Receipts'
-                            });
-                        }
+                        useFinancialStore.getState().addActionItem({
+                            id: 'hsa-shoebox',
+                            stepId: 'hsa',
+                            label: 'Set up a cloud folder for medical receipts'
+                        });
                         nextStep();
                     }}
-                    className="w-full p-4 bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 transition-all font-medium flex items-center justify-center gap-2"
+                    className="w-full p-4 bg-primary text-primary-foreground rounded-2xl transition-all hover:brightness-110 active:scale-[0.99] font-bold flex items-center justify-center gap-2"
                 >
-                    Got it. Strategy Locked. <ArrowRight className="w-5 h-5" />
+                    Strategy locked. Next <ArrowRight className="w-5 h-5" aria-hidden />
                 </button>
             </div>
         </ConversationalCard>
