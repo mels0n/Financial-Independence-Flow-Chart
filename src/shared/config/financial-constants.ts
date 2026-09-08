@@ -5,6 +5,8 @@ export interface SourceRef {
     label: string;
     /** Link to the official document */
     url: string;
+    /** True while the figure is an estimate awaiting the IRS announcement */
+    projected?: boolean;
 }
 
 export interface FinancialLimits {
@@ -44,24 +46,26 @@ export interface YearMeta {
     };
 }
 
-const IRS_SOURCES_2026 = {
-    k401: { label: "IRS Notice 2025-67", url: "https://www.irs.gov/pub/irs-drop/n-25-67.pdf" },
-    ira: { label: "IRS Notice 2025-67", url: "https://www.irs.gov/pub/irs-drop/n-25-67.pdf" },
-    hsa: { label: "IRS Rev. Proc. 2025-19", url: "https://www.irs.gov/pub/irs-drop/rp-25-19.pdf" },
-    standardDeduction: { label: "IRS Rev. Proc. 2025-28", url: "https://www.irs.gov/pub/irs-drop/rp-25-28.pdf" },
-} as const;
-
 export const YEAR_META: Record<TaxYear, YearMeta> = {
     "2026": {
         status: "official",
         note: "Official IRS figures.",
-        sources: IRS_SOURCES_2026,
+        sources: {
+            k401: { label: "IRS Notice 2025-67", url: "https://www.irs.gov/pub/irs-drop/n-25-67.pdf" },
+            ira: { label: "IRS Notice 2025-67", url: "https://www.irs.gov/pub/irs-drop/n-25-67.pdf" },
+            hsa: { label: "IRS Rev. Proc. 2025-19", url: "https://www.irs.gov/pub/irs-drop/rp-25-19.pdf" },
+            standardDeduction: { label: "IRS Rev. Proc. 2025-32", url: "https://www.irs.gov/pub/irs-drop/rp-25-32.pdf" },
+        },
     },
     "2027": {
         status: "projected",
-        note: "Projected from inflation trends; the IRS announces official 2027 figures around November 2026. Update then.",
-        // Projections extrapolate from the latest official documents.
-        sources: IRS_SOURCES_2026,
+        note: "Mixed year: HSA and HDHP figures are OFFICIAL per Rev. Proc. 2026-24 (May 2026). 401(k), IRA, and standard deduction figures are inflation projections until the IRS announces them (~Nov 2026). Update then.",
+        sources: {
+            k401: { label: "IRS Notice 2025-67 (2026 baseline)", url: "https://www.irs.gov/pub/irs-drop/n-25-67.pdf", projected: true },
+            ira: { label: "IRS Notice 2025-67 (2026 baseline)", url: "https://www.irs.gov/pub/irs-drop/n-25-67.pdf", projected: true },
+            hsa: { label: "IRS Rev. Proc. 2026-24", url: "https://www.irs.gov/pub/irs-drop/rp-26-24.pdf" },
+            standardDeduction: { label: "IRS Rev. Proc. 2025-32 (2026 baseline)", url: "https://www.irs.gov/pub/irs-drop/rp-25-32.pdf", projected: true },
+        },
     },
 };
 
@@ -101,14 +105,14 @@ export const FINANCIAL_CONSTANTS: Record<TaxYear, FinancialLimits> & { hsaIntere
             catchUp: 1100, // Projected — no change expected
         },
         hsa: {
-            self: 4550, // Projected — inflation-based estimate
-            family: 9050, // Projected — inflation-based estimate
+            self: 4500, // OFFICIAL — Rev. Proc. 2026-24 (May 2026)
+            family: 9000, // OFFICIAL — Rev. Proc. 2026-24
             catchUp: 1000, // Fixed by law
-            hdhpMinDeductibleSelf: 1700, // Projected — carried forward until IRS announces
-            hdhpMinDeductibleFamily: 3400, // Projected — carried forward until IRS announces
+            hdhpMinDeductibleSelf: 1750, // OFFICIAL — Rev. Proc. 2026-24
+            hdhpMinDeductibleFamily: 3500, // OFFICIAL — Rev. Proc. 2026-24
         },
         standardDeduction: {
-            single: 16550, // Projected — inflation-based estimate
+            single: 16550, // Projected — inflation-based estimate (Rev. Proc. 2025-32 is the 2026 baseline)
             married: 33100, // Projected — inflation-based estimate
             headOfHousehold: 24900, // Projected — inflation-based estimate
         },
@@ -148,13 +152,13 @@ export const ASSUMPTIONS = {
     },
     moderateDebtRate: {
         value: 0.05,
-        label: "Moderate-debt interest approximation",
-        detail: "Payoff plans for 4-7% debt approximate simple interest at 5%.",
+        label: "Moderate-debt interest assumption",
+        detail: "Payoff plans for 4-7% debt assume a 5% APR, amortized monthly. Only the extra payment above your existing minimum is allocated, since minimums already live in your expense budget.",
     },
     lowDebtRate: {
         value: 0.035,
-        label: "Low-interest-debt approximation",
-        detail: "Payoff plans for sub-4% debt approximate simple interest at 3.5%.",
+        label: "Low-interest-debt assumption",
+        detail: "Payoff plans for sub-4% debt assume a 3.5% APR, amortized monthly. Only the extra payment above your existing minimum is allocated.",
     },
 } as const;
 

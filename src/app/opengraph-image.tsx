@@ -10,6 +10,15 @@ export const size = {
 
 export const contentType = "image/png";
 
+// Arcade-ledger world (DESIGN.md): teal-ink ground, faint grid, verdigris voice.
+const GROUND = "#0c191d";
+const GROUND_2 = "#12242a";
+const GRID_LINE = "rgba(45, 212, 180, 0.08)";
+const VERDIGRIS = "#2dd4b4";
+const INK = "#e6efec";
+const MUTED = "#8fa6a2";
+const GROUND_ON_ACCENT = "#08211c";
+
 export default async function Image() {
     return new ImageResponse(
         (
@@ -21,12 +30,12 @@ export default async function Image() {
                     flexDirection: "column",
                     alignItems: "center",
                     justifyContent: "center",
-                    backgroundImage: "linear-gradient(to bottom right, #1e1b4b, #312e81)",
-                    color: "white",
+                    backgroundImage: `linear-gradient(to bottom right, ${GROUND}, ${GROUND_2})`,
+                    color: INK,
                     fontFamily: "sans-serif",
                 }}
             >
-                {/* Background Pattern */}
+                {/* Quest-board grid ground */}
                 <div
                     style={{
                         position: "absolute",
@@ -35,8 +44,8 @@ export default async function Image() {
                         right: 0,
                         bottom: 0,
                         backgroundImage:
-                            "radial-gradient(circle at 25px 25px, rgba(255, 255, 255, 0.1) 2%, transparent 0%), radial-gradient(circle at 75px 75px, rgba(255, 255, 255, 0.1) 2%, transparent 0%)",
-                        backgroundSize: "100px 100px",
+                            `linear-gradient(${GRID_LINE} 1px, transparent 1px), linear-gradient(90deg, ${GRID_LINE} 1px, transparent 1px)`,
+                        backgroundSize: "44px 44px",
                     }}
                 />
 
@@ -51,13 +60,11 @@ export default async function Image() {
                 >
                     <div
                         style={{
-                            fontSize: 72,
-                            fontWeight: 900,
-                            letterSpacing: "-0.05em",
-                            marginBottom: 20,
-                            background: "linear-gradient(to right, #818cf8, #c7d2fe)",
-                            backgroundClip: "text",
-                            color: "transparent",
+                            fontSize: 76,
+                            fontWeight: 800,
+                            letterSpacing: "-0.03em",
+                            marginBottom: 18,
+                            color: INK,
                             display: "flex",
                         }}
                     >
@@ -66,27 +73,27 @@ export default async function Image() {
 
                     <div
                         style={{
-                            fontSize: 32,
-                            color: "#a5b4fc",
-                            marginBottom: 60,
+                            fontSize: 30,
+                            color: MUTED,
+                            marginBottom: 56,
                             fontWeight: 500,
                         }}
                     >
-                        Path to Independence
+                        Every dollar gets a job. Every number shows its math.
                     </div>
 
                     <div
                         style={{
                             padding: "16px 48px",
-                            backgroundColor: "#4f46e5",
-                            color: "white",
+                            backgroundColor: VERDIGRIS,
+                            color: GROUND_ON_ACCENT,
                             fontSize: 28,
-                            fontWeight: 600,
-                            borderRadius: 999,
-                            boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.3)",
+                            fontWeight: 700,
+                            borderRadius: 16,
+                            boxShadow: "0 16px 40px -12px rgba(45, 212, 180, 0.35)",
                         }}
                     >
-                        Gain Financial Independence
+                        Start the quest
                     </div>
                 </div>
             </div>

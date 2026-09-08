@@ -93,6 +93,43 @@ export function QuestFlow() {
 
 function FinaleCard({ variant }: { variant: "completed" | "exhausted" }) {
     const completed = variant === "completed";
+    const hasPlan = useFinancialStore((s) => Object.values(s.allocations).some((v) => v > 0));
+
+    // Exhausting the budget with nothing allocated is not a win to celebrate:
+    // expenses consume the whole paycheck, and honesty beats gold here.
+    if (!completed && !hasPlan) {
+        return (
+            <div className="rounded-3xl border border-warning/40 bg-card p-6 sm:p-8">
+                <div className="text-center mb-6">
+                    <span className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full border border-warning/50 bg-warning/10 text-warning">
+                        <Flag className="h-6 w-6" aria-hidden />
+                    </span>
+                    <h2 className="font-display text-3xl font-bold text-foreground [text-wrap:balance] mb-2">
+                        Your budget is spoken for.
+                    </h2>
+                    <p className="text-muted-foreground text-base max-w-md mx-auto">
+                        Expenses currently consume your whole paycheck, so there was nothing free
+                        to allocate. Knowing that precisely is the real first step.
+                    </p>
+                </div>
+
+                <div className="rounded-2xl border border-border bg-secondary/40 p-4 mb-6 text-left">
+                    <h3 className="text-sm font-bold text-foreground mb-1">Where the game is won from here</h3>
+                    <p className="text-sm text-muted-foreground">
+                        Widen the gap: trim expenses or grow income, then rerun the quest. Even $50/mo
+                        free changes what these steps can do for you.
+                    </p>
+                </div>
+
+                <button
+                    onClick={resetFinancialQuest}
+                    className="mx-auto flex items-center gap-2 rounded-xl bg-primary px-6 py-3 font-bold text-primary-foreground transition-all hover:brightness-110 active:scale-[0.98]"
+                >
+                    <RefreshCcw className="w-4 h-4" aria-hidden /> Start a fresh run
+                </button>
+            </div>
+        );
+    }
 
     return (
         <div className="rounded-3xl border border-reward/40 bg-card p-6 sm:p-8 shadow-[0_24px_80px_-32px_hsl(var(--reward)/0.4)]">

@@ -11,6 +11,30 @@
         ],
         "createdAt": "2026-09-08T02:13:06.306Z",
         "reason": "Claude: quest-board map surface in the owner-approved direction (mockup signed off 2026-09-07); grid is the game world's ground, not decoration"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "9px",
+        "createdAt": "2026-09-08T04:34:12.819Z",
+        "reason": "Claude: mono-caps annotation/label tier of the shipped arcade-ledger system; DESIGN.md's prose records this layer, the parsed ramp is narrower than the build it documents"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "10px",
+        "createdAt": "2026-09-08T04:34:12.886Z",
+        "reason": "Claude: mono-caps annotation/label tier of the shipped arcade-ledger system; DESIGN.md's prose records this layer, the parsed ramp is narrower than the build it documents"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "11px",
+        "createdAt": "2026-09-08T04:34:12.956Z",
+        "reason": "Claude: mono-caps annotation/label tier of the shipped arcade-ledger system; DESIGN.md's prose records this layer, the parsed ramp is narrower than the build it documents"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "13px",
+        "createdAt": "2026-09-08T04:34:13.026Z",
+        "reason": "Claude: mono-caps annotation/label tier of the shipped arcade-ledger system; DESIGN.md's prose records this layer, the parsed ramp is narrower than the build it documents"
       }
     ]
   }

@@ -1,50 +1,46 @@
 "use client";
 
 import { useFinancialStore } from "@/entities/financial/model/financialStore";
+import { useShallow } from "zustand/react/shallow";
 import {
-    FLOW_STEPS,
     PHASES,
+    PHASE_ICONS,
     getEarnedPhases,
     getMaxReachedIndex,
     getPhaseSteps,
     getStepIndex,
-    type PhaseId,
 } from "@/shared/config/flow";
 import { cn } from "@/shared/lib/utils";
 import { Currency } from "@/shared/ui/Currency/Currency";
 import { useProposalStore } from "@/shared/model/proposalStore";
 import {
     Check,
-    Map,
-    Shield,
-    Sparkles,
-    Rocket,
     Trophy,
     BookOpen,
     ScrollText,
     Swords,
 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
-
-const PHASE_BADGE_ICONS: Record<PhaseId, LucideIcon> = {
-    foundation: Map,
-    protect: Shield,
-    grow: Sparkles,
-    optimize: Rocket,
-};
 
 interface QuestBarProps {
     className?: string;
 }
 
 export function QuestBar({ className }: QuestBarProps) {
-    const { profile, getRemainingBudget, currentStep, history, allocations, selectedYear } = useFinancialStore();
+    const { profile, currentStep, history, allocations, selectedYear } = useFinancialStore(
+        useShallow((s) => ({
+            profile: s.profile,
+            currentStep: s.currentStep,
+            history: s.history,
+            allocations: s.allocations,
+            selectedYear: s.selectedYear,
+        }))
+    );
     const proposedAmount = useProposalStore((s) => s.proposedAmount);
 
     const income = profile.monthlyIncome;
     const expenses = profile.monthlyExpenses;
     const committed = Object.values(allocations).reduce((acc, v) => acc + v, 0);
-    const remaining = getRemainingBudget();
+    const remaining = income - expenses - committed;
     // The decision on screen right now: striped on the bar, capped by what is free.
     const pending = Math.min(Math.max(0, proposedAmount ?? 0), Math.max(0, remaining));
     const freeAfterPending = Math.max(0, remaining) - pending;
@@ -198,7 +194,7 @@ export function QuestBar({ className }: QuestBarProps) {
                     <ul className="flex flex-wrap gap-2">
                         {PHASES.map((phase) => {
                             const earned = earnedPhases.includes(phase.id);
-                            const Icon = PHASE_BADGE_ICONS[phase.id];
+                            const Icon = PHASE_ICONS[phase.id];
                             return (
                                 <li key={phase.id}>
                                     <span className={cn(

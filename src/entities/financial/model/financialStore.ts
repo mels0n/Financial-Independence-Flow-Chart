@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { FLOW_ORDER, getFlowStep, getStepIndex, type PhaseId, type StepId } from '@/shared/config/flow';
+import { FLOW_ORDER, getFlowStep, type PhaseId, type StepId } from '@/shared/config/flow';
 
 export type { StepId };
 
@@ -23,7 +23,8 @@ interface FinancialProfile {
 
 export interface ActionItem {
     id: string;
-    stepId?: string; // Optional for backward compatibility/manual items, but recommended
+    /** Step that minted the item; typed so a typo fails to compile */
+    stepId?: StepId;
     label: string;
     completed: boolean;
 }
@@ -35,6 +36,8 @@ interface FinancialState {
     profile: FinancialProfile;
     allocations: Record<string, number>;
     actionItems: ActionItem[];
+    /** Lump sums taken out of excessCash, by step, so goBack can refund them */
+    excessSpent: Record<string, number>;
     /** Phase whose completion is currently being celebrated (drives the milestone toast). Not persisted. */
     celebratingPhase: PhaseId | null;
 
@@ -42,6 +45,8 @@ interface FinancialState {
     setYear: (year: TaxYear) => void;
     setProfileBase: (data: Partial<FinancialProfile>) => void;
     setAllocation: (stepId: string, amount: number) => void;
+    /** Spend part of the emergency-fund surplus on a step's lump sum (refundable via goBack) */
+    spendExcess: (stepId: StepId, amount: number) => void;
     addActionItem: (item: Omit<ActionItem, 'completed'>) => void;
     toggleActionItem: (id: string) => void;
     clearCelebration: () => void;
@@ -56,6 +61,15 @@ interface FinancialState {
 }
 
 export const DEFAULT_YEAR = '2026';
+
+/** The milestone a transition earns: the phase being left, when the next real step starts a new one. */
+function computeCrossedPhase(leaving: StepId, nextRealStep: StepId): PhaseId | null {
+    // The finale screen is its own celebration; the optimize toast would double up.
+    if (nextRealStep === 'completed') return null;
+    const from = getFlowStep(leaving)?.phase ?? null;
+    const to = getFlowStep(nextRealStep)?.phase ?? null;
+    return from !== null && to !== null && from !== to ? from : null;
+}
 
 export const useFinancialStore = create<FinancialState>()(
     persist(
@@ -78,6 +92,7 @@ export const useFinancialStore = create<FinancialState>()(
             },
             allocations: {},
             actionItems: [],
+            excessSpent: {},
             celebratingPhase: null,
 
             getRemainingBudget: () => {
@@ -88,6 +103,11 @@ export const useFinancialStore = create<FinancialState>()(
 
             setAllocation: (stepId, amount) => set((state) => ({
                 allocations: { ...state.allocations, [stepId]: amount }
+            })),
+
+            spendExcess: (stepId, amount) => set((state) => ({
+                profile: { ...state.profile, excessCash: Math.max(0, state.profile.excessCash - amount) },
+                excessSpent: { ...state.excessSpent, [stepId]: (state.excessSpent[stepId] ?? 0) + amount },
             })),
 
             setYear: (year) => set({ selectedYear: year }),
@@ -117,71 +137,77 @@ export const useFinancialStore = create<FinancialState>()(
             goBack: () => set((state) => {
                 const newHistory = [...state.history];
                 const prev = newHistory.pop();
-                if (prev) {
-                    // Clear the state that belongs to the step we return to, so the user
-                    // can re-enter it without stale allocations or action items.
-                    const newAllocations = { ...state.allocations };
-                    delete newAllocations[prev];
+                if (!prev) return state;
 
-                    const newActionItems = state.actionItems.filter(item => item.stepId !== prev);
-
-                    return {
-                        currentStep: prev,
-                        history: newHistory,
-                        allocations: newAllocations,
-                        actionItems: newActionItems,
-                        celebratingPhase: null,
-                    };
+                // Clear both the step being returned to (so it can be re-entered) and the
+                // step being abandoned (so its half-committed state cannot leak into the
+                // budget), refunding any lump sums either step took from the surplus.
+                const clearIds = [prev, state.currentStep];
+                const newAllocations = { ...state.allocations };
+                const newExcessSpent = { ...state.excessSpent };
+                let refund = 0;
+                for (const id of clearIds) {
+                    delete newAllocations[id];
+                    if (newExcessSpent[id]) {
+                        refund += newExcessSpent[id];
+                        delete newExcessSpent[id];
+                    }
                 }
-                return state;
+
+                return {
+                    currentStep: prev,
+                    history: newHistory,
+                    allocations: newAllocations,
+                    excessSpent: newExcessSpent,
+                    profile: refund > 0
+                        ? { ...state.profile, excessCash: state.profile.excessCash + refund }
+                        : state.profile,
+                    actionItems: state.actionItems.filter(
+                        item => item.stepId === undefined || !clearIds.includes(item.stepId)
+                    ),
+                    celebratingPhase: null,
+                };
             }),
 
             nextStep: () => {
                 const { currentStep, getRemainingBudget } = get();
-                const budget = getRemainingBudget();
                 const currentIndex = FLOW_ORDER.indexOf(currentStep);
+                if (currentIndex === -1 || currentIndex >= FLOW_ORDER.length - 1) return;
 
-                // Once past the setup phases, an empty budget ends the run: the player
-                // has allocated everything they can this year.
-                if (currentIndex > 3 && budget <= 0 && currentStep !== 'completed') {
-                    // Leaving a phase's last step still mints its badge, even when the
-                    // budget runs out on that step.
-                    const leavingPhase = getFlowStep(currentStep)?.phase ?? null;
-                    const wouldEnter = FLOW_ORDER[currentIndex + 1];
-                    const enteringPhase = wouldEnter && wouldEnter !== 'completed' ? getFlowStep(wouldEnter)?.phase ?? null : null;
-                    const crossedPhase = leavingPhase !== null && leavingPhase !== enteringPhase ? leavingPhase : null;
+                const next = FLOW_ORDER[currentIndex + 1];
+                const budget = getRemainingBudget();
+                const leaving = getFlowStep(currentStep);
 
-                    set((state) => ({
-                        history: [...state.history, state.currentStep],
-                        currentStep: 'budget-exhausted',
-                        celebratingPhase: crossedPhase ?? state.celebratingPhase,
-                    }));
-                    return;
-                }
+                // An empty budget ends the run early, except: during the foundation phase
+                // (nothing is allocated yet), on the starter fund step (it handles a zero
+                // budget itself), and when the next step is 'completed' (allocating the
+                // final dollar on the last step IS finishing the quest).
+                const shouldExhaust = budget <= 0
+                    && next !== 'completed'
+                    && leaving !== undefined
+                    && leaving.phase !== 'foundation'
+                    && currentStep !== 'emergency-fund';
 
-                if (currentIndex !== -1 && currentIndex < FLOW_ORDER.length - 1) {
-                    const next = FLOW_ORDER[currentIndex + 1];
-                    // Crossing into a new phase completes the old one: fire the milestone.
-                    // Deliberately silent when next === 'completed': the finale screen is
-                    // the celebration there, so the optimize-phase toast would double up.
-                    const leavingPhase = getFlowStep(currentStep)?.phase ?? null;
-                    const enteringPhase = next === 'completed' ? null : getFlowStep(next)?.phase ?? null;
-                    const crossedPhase = leavingPhase !== null && leavingPhase !== enteringPhase && next !== 'completed'
-                        ? leavingPhase
-                        : null;
+                const crossedPhase = computeCrossedPhase(currentStep, next);
 
-                    set((state) => ({
-                        history: [...state.history, state.currentStep],
-                        currentStep: next,
-                        celebratingPhase: crossedPhase ?? state.celebratingPhase,
-                    }));
-                }
+                set((state) => ({
+                    history: [...state.history, state.currentStep],
+                    currentStep: shouldExhaust ? 'budget-exhausted' : next,
+                    celebratingPhase: crossedPhase ?? state.celebratingPhase,
+                }));
             },
         }),
         {
             name: 'financial-quest-storage',
             // sessionStorage: survives refresh, clears when the tab closes.
             storage: createJSONStorage(() => sessionStorage),
+            // v2: the redesign renamed the goals allocation key and made stepId
+            // universal; older persisted sessions are incompatible, so start fresh.
+            version: 2,
+            migrate: (persisted, version) => {
+                if (version < 2) return undefined as unknown as FinancialState;
+                return persisted as FinancialState;
+            },
             partialize: (state) => ({
                 currentStep: state.currentStep,
                 history: state.history,
@@ -189,6 +215,7 @@ export const useFinancialStore = create<FinancialState>()(
                 profile: state.profile,
                 allocations: state.allocations,
                 actionItems: state.actionItems,
+                excessSpent: state.excessSpent,
             }),
         }
     ));

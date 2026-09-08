@@ -6,7 +6,16 @@ import { ConversationalCard } from "@/shared/ui/ConversationalCard/Conversationa
 import { RecommendationBlock } from "@/shared/ui/RecommendationBlock/RecommendationBlock";
 import { Currency } from "@/shared/ui/Currency/Currency";
 import { ArrowRight, TrendingDown } from "lucide-react";
+import { formatPercent } from "@/shared/lib/utils";
 import { useState } from "react";
+
+/** Standard amortized monthly payment for a balance at an annual rate over n months. */
+function amortizedPayment(balance: number, annualRate: number, months: number): number {
+    if (months <= 0) return balance;
+    const r = annualRate / 12;
+    if (r === 0) return Math.ceil(balance / months);
+    return Math.ceil((balance * r) / (1 - Math.pow(1 + r, -months)));
+}
 
 export function ModerateDebtStep() {
     const { nextStep, getRemainingBudget, setAllocation } = useFinancialStore();
@@ -14,6 +23,7 @@ export function ModerateDebtStep() {
 
     const [hasDebt, setHasDebt] = useState<boolean | null>(null);
     const [debtAmount, setDebtAmount] = useState('');
+    const [minPayment, setMinPayment] = useState('');
     const [payoffMonths, setPayoffMonths] = useState(12);
 
     const handleAnswer = (ans: boolean) => {
@@ -24,21 +34,25 @@ export function ModerateDebtStep() {
     };
 
     const debtVal = parseFloat(debtAmount.replace(/,/g, "")) || 0;
-    const interestRate = ASSUMPTIONS.moderateDebtRate.value;
+    const minPay = parseFloat(minPayment.replace(/,/g, "")) || 0;
+    const annualRate = ASSUMPTIONS.moderateDebtRate.value;
     const years = payoffMonths / 12;
-    const totalInterest = debtVal * interestRate * years;
-    const totalToPay = debtVal + totalInterest;
-    const monthlyPayment = Math.ceil(totalToPay / payoffMonths);
 
-    const affordable = monthlyPayment <= remaining;
+    // Your expense budget already contains the minimum payment (that is how the
+    // budget step defines expenses), so only the EXTRA gets allocated here.
+    const requiredPayment = amortizedPayment(debtVal, annualRate, payoffMonths);
+    const extraPayment = Math.max(0, requiredPayment - minPay);
+
+    const minAlreadyCovers = debtVal > 0 && extraPayment === 0;
+    const affordable = extraPayment <= remaining;
 
     const handleCommit = () => {
-        if (debtVal > 0 && affordable) {
-            setAllocation('moderate-debt', monthlyPayment);
+        if (debtVal > 0 && extraPayment > 0 && affordable) {
+            setAllocation('moderate-debt', extraPayment);
             useFinancialStore.getState().addActionItem({
                 id: 'pay-debt',
                 stepId: 'moderate-debt',
-                label: `Pay $${monthlyPayment.toLocaleString()}/mo to Clear Moderate Debt in ${payoffMonths} months`
+                label: `Pay an extra $${extraPayment.toLocaleString()}/mo above the minimum to clear moderate debt in ${payoffMonths} months`
             });
         }
         nextStep();
@@ -85,19 +99,37 @@ export function ModerateDebtStep() {
         >
             <div className="space-y-5">
                 <div className="space-y-4">
-                    <div>
-                        <label htmlFor="mod-debt-amount" className="text-sm font-medium text-foreground">Total moderate debt remaining</label>
-                        <div className="relative mt-1">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden>$</span>
-                            <input
-                                id="mod-debt-amount"
-                                type="text"
-                                inputMode="numeric"
-                                value={debtAmount}
-                                onChange={(e) => setDebtAmount(e.target.value)}
-                                className="w-full p-2.5 pl-7 bg-secondary rounded-lg font-mono tabular font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                                placeholder="15,000"
-                            />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label htmlFor="mod-debt-amount" className="text-sm font-medium text-foreground">Total balance remaining</label>
+                            <div className="relative mt-1">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden>$</span>
+                                <input
+                                    id="mod-debt-amount"
+                                    type="text"
+                                    inputMode="numeric"
+                                    value={debtAmount}
+                                    onChange={(e) => setDebtAmount(e.target.value)}
+                                    className="w-full p-2.5 pl-7 bg-secondary rounded-lg font-mono tabular font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                                    placeholder="15,000"
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <label htmlFor="mod-debt-min" className="text-sm font-medium text-foreground">Monthly minimum you already pay</label>
+                            <div className="relative mt-1">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden>$</span>
+                                <input
+                                    id="mod-debt-min"
+                                    type="text"
+                                    inputMode="numeric"
+                                    value={minPayment}
+                                    onChange={(e) => setMinPayment(e.target.value)}
+                                    className="w-full p-2.5 pl-7 bg-secondary rounded-lg font-mono tabular font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                                    placeholder="250"
+                                />
+                            </div>
+                            <p className="mt-1 text-xs text-muted-foreground">Already counted in your expenses.</p>
                         </div>
                     </div>
 
@@ -121,38 +153,52 @@ export function ModerateDebtStep() {
                 </div>
 
                 {debtVal > 0 ? (
-                    <RecommendationBlock
-                        label="Monthly payment"
-                        amount={monthlyPayment}
-                        benefit={<span>Debt-free in <strong className="text-foreground">{payoffMonths} months</strong>.</span>}
-                        math={[
-                            { label: "Balance", value: `$${debtVal.toLocaleString()}` },
-                            { label: `Approx. interest (${interestRate * 100}% × ${years.toFixed(1)} yr)`, value: `+ $${Math.round(totalInterest).toLocaleString()}` },
-                            { label: `Spread across ${payoffMonths} months`, value: `÷ ${payoffMonths}` },
-                            { label: "Monthly payment", value: `$${monthlyPayment.toLocaleString()}`, total: true },
-                            { label: "Your free budget (the cap)", value: `$${remaining.toLocaleString()}` },
-                        ]}
-                        assumptions={ASSUMPTIONS.moderateDebtRate.detail + " Your actual amortization will differ slightly."}
-                    >
-                        {!affordable && (
-                            <p className="text-sm font-semibold text-destructive">
-                                This exceeds your free budget of <Currency value={remaining} className="text-sm font-bold" />. Extend the timeline.
-                            </p>
-                        )}
-                        <button
-                            onClick={handleCommit}
-                            disabled={!affordable || debtVal <= 0}
-                            className="w-full p-4 bg-primary text-primary-foreground rounded-2xl transition-all hover:brightness-110 active:scale-[0.99] disabled:opacity-50 font-bold flex items-center justify-center gap-2"
+                    minAlreadyCovers ? (
+                        <div className="p-4 rounded-xl border border-success/40 bg-success/10 text-sm text-foreground/90">
+                            <strong className="text-success">Your minimum already wins:</strong> paying{" "}
+                            <Currency value={minPay} per="mo" className="text-sm font-bold text-foreground" /> clears this balance
+                            within {payoffMonths} months at the assumed {formatPercent(annualRate)} APR. Nothing extra to allocate.
+                            <button
+                                onClick={() => nextStep()}
+                                className="mt-3 block w-full p-3 bg-success text-success-foreground rounded-xl font-bold transition-all hover:brightness-110"
+                            >
+                                Continue
+                            </button>
+                        </div>
+                    ) : (
+                        <RecommendationBlock
+                            label="Extra payment"
+                            amount={extraPayment}
+                            benefit={<span>Debt-free in <strong className="text-foreground">{payoffMonths} months</strong>.</span>}
+                            math={[
+                                { label: "Balance", value: `$${debtVal.toLocaleString()}` },
+                                { label: `Amortized at ${formatPercent(annualRate)} APR over ${payoffMonths} mo`, value: `$${requiredPayment.toLocaleString()}/mo` },
+                                { label: "Minimum already in your expenses", value: `− $${minPay.toLocaleString()}` },
+                                { label: "Extra to allocate", value: `$${extraPayment.toLocaleString()}/mo`, total: true },
+                                { label: "Your free budget (the cap)", value: `$${remaining.toLocaleString()}` },
+                            ]}
+                            assumptions={`${ASSUMPTIONS.moderateDebtRate.detail} Your loan's actual rate will shift this slightly; the payoff order does not change.`}
                         >
-                            Commit to the plan <ArrowRight className="w-5 h-5" aria-hidden />
-                        </button>
-                        <button
-                            onClick={() => nextStep()}
-                            className="mx-auto text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground rounded"
-                        >
-                            Skip this step
-                        </button>
-                    </RecommendationBlock>
+                            {!affordable && (
+                                <p className="text-sm font-semibold text-destructive">
+                                    This exceeds your free budget of <Currency value={remaining} className="text-sm font-bold" />. Extend the timeline.
+                                </p>
+                            )}
+                            <button
+                                onClick={handleCommit}
+                                disabled={!affordable || debtVal <= 0}
+                                className="w-full p-4 bg-primary text-primary-foreground rounded-2xl transition-all hover:brightness-110 active:scale-[0.99] disabled:opacity-50 font-bold flex items-center justify-center gap-2"
+                            >
+                                Commit to the plan <ArrowRight className="w-5 h-5" aria-hidden />
+                            </button>
+                            <button
+                                onClick={() => nextStep()}
+                                className="mx-auto text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground rounded"
+                            >
+                                Skip this step
+                            </button>
+                        </RecommendationBlock>
+                    )
                 ) : (
                     <p className="p-4 rounded-xl bg-secondary/60 border border-border text-sm text-muted-foreground">
                         Enter your balance above and the plan calculates itself.

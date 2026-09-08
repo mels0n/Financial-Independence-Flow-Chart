@@ -38,7 +38,7 @@ export function IraStep() {
         }
 
         if (canLumpSum) {
-            setProfileBase({ excessCash: excessCash - remainingToMax });
+            useFinancialStore.getState().spendExcess('ira', remainingToMax);
             useFinancialStore.getState().addActionItem({
                 id: 'ira-lump-sum',
                 stepId: 'ira',
@@ -123,30 +123,42 @@ export function IraStep() {
                                 ? <span>Your emergency-fund surplus covers the whole {selectedYear} contribution today.</span>
                                 : <span>Fills your remaining <Currency value={remainingToMax} className="text-sm font-bold text-foreground" /> of {selectedYear} IRA space.</span>
                         }
-                        math={[
+                        math={canLumpSum ? [
+                            {
+                                label: isMarried ? `${selectedYear} limit ($${limits.limit.toLocaleString()} × 2 spouses)` : `${selectedYear} IRA limit`,
+                                value: `$${limit.toLocaleString()}`
+                            },
+                            { label: "Already contributed", value: `− $${alreadyContributed.toLocaleString()}` },
+                            { label: "Transfer from surplus today", value: `$${remainingToMax.toLocaleString()}`, total: true },
+                            { label: "Surplus cash on hand", value: `$${excessCash.toLocaleString()}` },
+                        ] : [
                             {
                                 label: isMarried ? `${selectedYear} limit ($${limits.limit.toLocaleString()} × 2 spouses)` : `${selectedYear} IRA limit`,
                                 value: `$${limit.toLocaleString()}`
                             },
                             { label: "Already contributed", value: `− $${alreadyContributed.toLocaleString()}` },
                             { label: "Spread across 12 months", value: "÷ 12" },
-                            { label: "Monthly to hit the max", value: `$${monthlyToMax.toLocaleString()}`, total: true },
+                            { label: "Monthly to hit the max", value: `$${monthlyToMax.toLocaleString()}` },
                             { label: "Your free budget (the cap)", value: `$${remainingBudget.toLocaleString()}` },
+                            { label: "This plan allocates", value: `$${Math.max(0, recommended).toLocaleString()}/mo`, total: true },
                         ]}
                         assumptions={`Catch-up if 50+: an extra $${limits.catchUp.toLocaleString()} per person, not included above. You can also fund a year's IRA until that year's tax deadline.`}
-                        source={{ ...yearMeta.sources.ira, projected: yearMeta.status === "projected" }}
+                        source={yearMeta.sources.ira}
                     >
                         <button
                             onClick={handleNext}
-                            disabled={!canLumpSum && recommended <= 0}
                             className={cn(
-                                "w-full p-4 rounded-2xl transition-all hover:brightness-110 active:scale-[0.99] disabled:opacity-50 font-bold text-base flex items-center justify-center gap-2",
-                                canLumpSum ? "bg-success text-success-foreground" : "bg-primary text-primary-foreground"
+                                "w-full p-4 rounded-2xl transition-all hover:brightness-110 active:scale-[0.99] font-bold text-base flex items-center justify-center gap-2",
+                                canLumpSum ? "bg-success text-success-foreground"
+                                    : recommended > 0 ? "bg-primary text-primary-foreground"
+                                        : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
                             )}
                         >
                             {canLumpSum
                                 ? <>Fund <Currency value={remainingToMax} className="font-bold" /> now <ArrowRight className="w-5 h-5" aria-hidden /></>
-                                : <>Allocate <Currency value={recommended} per="mo" className="font-bold" perClassName="text-primary-foreground/70" /> <ArrowRight className="w-5 h-5" aria-hidden /></>}
+                                : recommended > 0
+                                    ? <>Allocate <Currency value={recommended} per="mo" className="font-bold" perClassName="text-primary-foreground/70" /> <ArrowRight className="w-5 h-5" aria-hidden /></>
+                                    : <>No monthly room left. Continue <ArrowRight className="w-5 h-5" aria-hidden /></>}
                         </button>
                         <button
                             onClick={() => nextStep()}

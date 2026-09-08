@@ -1,3 +1,5 @@
+import { TAX_YEARS, YEAR_META } from "@/shared/config/financial-constants";
+
 export interface TaxYearInfo {
     year: string;
     label: string;
@@ -5,27 +7,21 @@ export interface TaxYearInfo {
     description: string;
 }
 
-// Known years are those where the IRS has released official contribution limits/brackets
-// UPDATE THIS LIST ANNUALLY when new data is hardcoded into the app.
-export const KNOWN_OFFICIAL_YEARS = [2026];
-
-export const getTaxYearInfo = (year: number): TaxYearInfo => {
-    const isKnown = KNOWN_OFFICIAL_YEARS.includes(year);
-
-    return {
-        year: year.toString(),
-        label: year.toString(),
-        status: isKnown ? 'Official' : 'Projected',
-        description: isKnown
-            ? 'Official Limits'
-            : 'Projected (Full 12-Month Plan)'
-    };
-};
-
+/**
+ * Selectable tax years, derived from the one source of truth in
+ * financial-constants.ts. A year is only offered when real data exists for it,
+ * and its official/projected label comes from the same record as the figures,
+ * so the two can never disagree.
+ */
 export const getAvailableTaxYears = (): TaxYearInfo[] => {
-    const currentYear = new Date().getFullYear();
-    // Always show Current Year and Next Year
-    const relevantYears = [currentYear, currentYear + 1];
-
-    return relevantYears.map(getTaxYearInfo);
+    return TAX_YEARS.map((year) => {
+        const meta = YEAR_META[year];
+        const official = meta.status === 'official';
+        return {
+            year,
+            label: year,
+            status: official ? 'Official' : 'Projected',
+            description: official ? 'Official Limits' : 'Partly projected limits',
+        };
+    });
 };

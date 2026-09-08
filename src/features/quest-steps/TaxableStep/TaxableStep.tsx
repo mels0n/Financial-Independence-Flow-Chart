@@ -1,17 +1,18 @@
 "use client";
 
 import { useFinancialStore } from "@/entities/financial/model/financialStore";
+import { INVESTMENT_STEP_IDS } from "@/shared/config/flow";
 import { ConversationalCard } from "@/shared/ui/ConversationalCard/ConversationalCard";
 import { Currency } from "@/shared/ui/Currency/Currency";
 import { ArrowRight, Globe2 } from "lucide-react";
 
 export function TaxableStep() {
-    const { nextStep, getRemainingBudget, setAllocation, profile, setProfileBase, allocations } = useFinancialStore();
+    const { nextStep, getRemainingBudget, setAllocation, profile, allocations } = useFinancialStore();
     const remaining = getRemainingBudget();
     const excessCash = profile.excessCash || 0;
 
-    const investmentSteps = ['match-employer', 'hsa', 'ira', 'max-401k', 'mega-backdoor', 'education'];
-    const currentInvesting = investmentSteps.reduce((acc, key) => acc + (allocations[key] || 0), 0);
+    // 'taxable' has no allocation yet at this point; `remaining` is about to become it.
+    const currentInvesting = Array.from(INVESTMENT_STEP_IDS).reduce((acc, key) => acc + (allocations[key] || 0), 0);
     const totalInvesting = currentInvesting + remaining;
 
     const savingsRate = profile.monthlyIncome > 0
@@ -34,7 +35,7 @@ export function TaxableStep() {
         }
 
         if (excessCash > 0) {
-            setProfileBase({ excessCash: 0 });
+            useFinancialStore.getState().spendExcess('taxable', excessCash);
             useFinancialStore.getState().addActionItem({
                 id: 'lump-sum-taxable',
                 stepId: 'taxable',

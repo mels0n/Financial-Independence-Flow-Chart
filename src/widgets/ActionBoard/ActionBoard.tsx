@@ -1,8 +1,8 @@
 "use client";
 
 import { useFinancialStore } from "@/entities/financial/model/financialStore";
+import { useShallow } from "zustand/react/shallow";
 import { getFlowStep } from "@/shared/config/flow";
-import type { StepId } from "@/shared/config/flow";
 import { cn } from "@/shared/lib/utils";
 import { Check, ClipboardList } from "lucide-react";
 import { motion } from "framer-motion";
@@ -23,7 +23,9 @@ function renderLabel(label: string) {
 }
 
 export function ActionBoard({ className }: ActionBoardProps) {
-    const { actionItems, toggleActionItem } = useFinancialStore();
+    const { actionItems, toggleActionItem } = useFinancialStore(
+        useShallow((s) => ({ actionItems: s.actionItems, toggleActionItem: s.toggleActionItem }))
+    );
 
     if (actionItems.length === 0) {
         return (
@@ -75,7 +77,7 @@ export function ActionBoard({ className }: ActionBoardProps) {
 
             <ul className="space-y-2.5">
                 {actionItems.map((item) => {
-                    const origin = item.stepId ? getFlowStep(item.stepId as StepId)?.label : undefined;
+                    const origin = item.stepId ? getFlowStep(item.stepId)?.label : undefined;
                     return (
                         <li key={item.id}>
                             <button

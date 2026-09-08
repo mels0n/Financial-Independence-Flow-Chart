@@ -40,9 +40,14 @@ export function DebtStep() {
         return (
             <ConversationalCard
                 title="The toxic stuff"
-                description="Any debt left over with an interest rate above 7%? Credit cards, payday loans, some auto loans."
+                description="Do you carry a balance on anything with an interest rate above 7%? Credit cards, payday loans, some auto loans."
                 icon={Flame}
             >
+                <div className="mb-4 rounded-xl border border-border bg-secondary/50 p-4 text-sm text-muted-foreground">
+                    <strong className="text-foreground">What counts as debt here:</strong> only a balance that rolls
+                    over month to month and accrues interest. A credit card you pay in full every month is not
+                    debt; that spending already lives in your monthly expenses.
+                </div>
                 <div className="grid grid-cols-2 gap-4">
                     <button onClick={() => handleAnswer(true)} className="p-6 bg-card border-2 border-border rounded-2xl hover:border-destructive hover:bg-destructive/10 transition-all text-lg font-bold text-foreground">Yes</button>
                     <button onClick={() => handleAnswer(false)} className="p-6 bg-card border-2 border-border rounded-2xl hover:border-success hover:bg-success/10 transition-all text-lg font-bold text-foreground">No, I&apos;m good</button>
@@ -55,7 +60,7 @@ export function DebtStep() {
         return (
             <ConversationalCard
                 title="Know your enemy"
-                description="What is the total balance of this high-interest debt?"
+                description="What is the total carried balance of this high-interest debt? (Only what rolls over and accrues interest, not this month's ordinary card spending.)"
                 icon={Flame}
             >
                 <form onSubmit={handleCalculate} className="flex gap-4 items-center">
@@ -73,7 +78,7 @@ export function DebtStep() {
                     </div>
                     <button
                         type="submit"
-                        disabled={!debtAmount}
+                        disabled={!(parseFloat(debtAmount.replace(/,/g, "")) > 0)}
                         aria-label="Continue"
                         className="p-4 bg-primary text-primary-foreground rounded-2xl transition-all hover:brightness-110 active:scale-95 disabled:opacity-50"
                     >

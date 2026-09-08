@@ -7,7 +7,7 @@ import { RecommendationBlock, SourceFootnote } from "@/shared/ui/RecommendationB
 import { Currency } from "@/shared/ui/Currency/Currency";
 import { ArrowRight, Receipt, CalendarClock, Cloud, HeartPulse, Check, AlertTriangle } from "lucide-react";
 import { useState } from "react";
-import { cn } from "@/shared/lib/utils";
+import { cn, formatPercent } from "@/shared/lib/utils";
 
 export function HsaStep() {
     const { profile, setProfileBase, nextStep, setAllocation, selectedYear, getRemainingBudget } = useFinancialStore();
@@ -39,7 +39,6 @@ export function HsaStep() {
     const recommended = Math.min(remainingBudget, aggressiveMonthly);
 
     const combinedRate = ASSUMPTIONS.marginalFederalRate.value + ASSUMPTIONS.ficaRate.value;
-    const annualTaxSavings = Math.round(remainingToMax * combinedRate);
 
     const handleEligible = (y: boolean) => {
         setProfileBase({ hasHsaEligiblePlan: y });
@@ -109,7 +108,7 @@ export function HsaStep() {
                         <strong className="text-foreground">${hsaLimits.hdhpMinDeductibleFamily.toLocaleString()} (family)</strong>.
                         It is commonly the &quot;low premium&quot; option in employer plans, with an HSA attached.
                     </p>
-                    <SourceFootnote source={{ ...yearMeta.sources.hsa, projected: yearMeta.status === "projected" }} />
+                    <SourceFootnote source={yearMeta.sources.hsa} />
 
                     <div className="grid grid-cols-2 gap-4">
                         <button onClick={() => handleEligible(true)} className="p-6 bg-card border-2 border-border rounded-2xl hover:border-primary hover:bg-primary/5 transition-all text-lg font-bold text-foreground">
@@ -125,11 +124,17 @@ export function HsaStep() {
     }
 
     if (stepPhase === "calc") {
-        const isMaxed = remainingToMax <= 0 && rawRemaining <= 0;
+        const isMaxed = rawRemaining <= 0;
         const isOverContributed = rawRemaining < 0;
 
         const excessCash = profile.excessCash || 0;
-        const canLumpSum = !isMaxed && excessCash >= remainingToMax && remainingToMax > 0;
+        const canLumpSum = !isMaxed && excessCash >= remainingToMax;
+
+        // The promised tax savings covers only what this plan actually funds this
+        // year, never the theoretical full limit.
+        const fundedThisYear = canLumpSum ? remainingToMax : Math.max(0, recommended) * monthsRemaining;
+        const estTaxSavings = Math.round(fundedThisYear * combinedRate);
+        const rateLabel = formatPercent(combinedRate);
 
         const description = isMaxed
             ? `You already hit the ${selectedYear} limit. Outstanding.`
@@ -199,28 +204,37 @@ export function HsaStep() {
 
                     {!isMaxed && !isOverContributed && (
                         <RecommendationBlock
-                            amount={recommended}
+                            label={canLumpSum ? "Fund from surplus cash" : "Recommended"}
+                            amount={canLumpSum ? remainingToMax : recommended}
+                            per={canLumpSum ? "once" : "mo"}
                             benefit={
                                 <span>
-                                    <span className="block font-mono tabular text-base font-bold text-success">≈ ${annualTaxSavings.toLocaleString()} saved</span>
-                                    estimated tax reduction this year
+                                    <span className="block font-mono tabular text-base font-bold text-success">≈ ${estTaxSavings.toLocaleString()} saved</span>
+                                    estimated tax cut on what this plan funds
                                 </span>
                             }
-                            math={[
+                            math={canLumpSum ? [
+                                { label: `${selectedYear} HSA limit (${coverageType === 'self' ? 'self-only' : 'family'})`, value: `$${annualLimit.toLocaleString()}` },
+                                { label: "Already contributed", value: `− $${alreadyContributed.toLocaleString()}` },
+                                { label: "Transfer from surplus today", value: `$${remainingToMax.toLocaleString()}`, total: true },
+                                { label: "Surplus cash on hand", value: `$${excessCash.toLocaleString()}` },
+                                { label: `Tax saved: $${fundedThisYear.toLocaleString()} × ${rateLabel}`, value: `≈ $${estTaxSavings.toLocaleString()}` },
+                            ] : [
                                 { label: `${selectedYear} HSA limit (${coverageType === 'self' ? 'self-only' : 'family'})`, value: `$${annualLimit.toLocaleString()}` },
                                 { label: "Already contributed", value: `− $${alreadyContributed.toLocaleString()}` },
                                 { label: `Months left in ${selectedYear}`, value: `÷ ${monthsRemaining}` },
-                                { label: "Monthly to hit the max", value: `$${aggressiveMonthly.toLocaleString()}`, total: true },
+                                { label: "Monthly to hit the max", value: `$${aggressiveMonthly.toLocaleString()}` },
                                 { label: "Your free budget (the cap)", value: `$${remainingBudget.toLocaleString()}` },
-                                { label: `Tax saved: $${remainingToMax.toLocaleString()} × ${Math.round(combinedRate * 1000) / 10}%`, value: `≈ $${annualTaxSavings.toLocaleString()}` },
+                                { label: "This plan allocates", value: `$${Math.max(0, recommended).toLocaleString()}/mo`, total: true },
+                                { label: `Tax saved: $${fundedThisYear.toLocaleString()} × ${rateLabel}`, value: `≈ $${estTaxSavings.toLocaleString()}` },
                             ]}
-                            assumptions={`Assumes the ${ASSUMPTIONS.marginalFederalRate.value * 100}% federal bracket plus ${ASSUMPTIONS.ficaRate.value * 100}% FICA (payroll HSA contributions avoid both). The steady-pace alternative is $${standardMonthly.toLocaleString()}/mo across a full year.`}
-                            source={{ ...yearMeta.sources.hsa, projected: yearMeta.status === "projected" }}
+                            assumptions={`Assumes the ${formatPercent(ASSUMPTIONS.marginalFederalRate.value)} federal bracket plus ${formatPercent(ASSUMPTIONS.ficaRate.value)} FICA (payroll HSA contributions avoid both). The steady-pace alternative for your remaining space is $${Math.round(remainingToMax / 12).toLocaleString()}/mo across a full year.`}
+                            source={yearMeta.sources.hsa}
                         >
                             {canLumpSum ? (
                                 <button
                                     onClick={() => {
-                                        setProfileBase({ excessCash: excessCash - remainingToMax });
+                                        useFinancialStore.getState().spendExcess('hsa', remainingToMax);
                                         useFinancialStore.getState().addActionItem({
                                             id: 'hsa-lump-sum',
                                             stepId: 'hsa',
@@ -233,13 +247,19 @@ export function HsaStep() {
                                     Fund <Currency value={remainingToMax} className="font-bold" perClassName="text-success-foreground/70" /> now from surplus cash
                                     <ArrowRight className="w-5 h-5" aria-hidden />
                                 </button>
-                            ) : (
+                            ) : recommended > 0 ? (
                                 <button
                                     onClick={confirmAllocation}
-                                    disabled={recommended <= 0}
-                                    className="w-full p-4 bg-primary text-primary-foreground rounded-2xl transition-all hover:brightness-110 active:scale-[0.99] disabled:opacity-50 font-bold text-base"
+                                    className="w-full p-4 bg-primary text-primary-foreground rounded-2xl transition-all hover:brightness-110 active:scale-[0.99] font-bold text-base"
                                 >
                                     Allocate <Currency value={recommended} per="mo" className="font-bold" perClassName="text-primary-foreground/70" />
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={() => nextStep()}
+                                    className="w-full p-4 bg-secondary text-secondary-foreground rounded-2xl transition-all hover:bg-secondary/80 font-bold text-base"
+                                >
+                                    No monthly room left. Continue
                                 </button>
                             )}
                             <button

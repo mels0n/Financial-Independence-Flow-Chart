@@ -4,7 +4,7 @@ import { ArrowLeft, ExternalLink, ScrollText, ShieldCheck, ListOrdered, FlaskCon
 import { ASSUMPTIONS, FINANCIAL_CONSTANTS, TAX_YEARS, YEAR_META } from "@/shared/config/financial-constants";
 import { FLOW_STEPS, PHASES, getPhaseSteps } from "@/shared/config/flow";
 import { YourDataPanel } from "./YourDataPanel";
-import { cn } from "@/shared/lib/utils";
+import { cn, formatPercent } from "@/shared/lib/utils";
 
 export const metadata = {
     title: "Sources & Methodology | Financial Quest",
@@ -111,6 +111,11 @@ export default function SourcesPage() {
                                                             <td className="px-4 py-2 text-foreground">{row.label}</td>
                                                             <td className="px-4 py-2 text-right font-mono tabular text-foreground">${row.value.toLocaleString()}</td>
                                                             <td className="px-4 py-2 text-right">
+                                                                {row.source.projected && (
+                                                                    <span className="mr-2 inline-block rounded bg-warning/15 px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wide text-warning">
+                                                                        Projected
+                                                                    </span>
+                                                                )}
                                                                 <a
                                                                     href={row.source.url}
                                                                     target="_blank"
@@ -154,7 +159,7 @@ export default function SourcesPage() {
                                         <dd className="mt-1 text-sm text-muted-foreground">{a.detail}</dd>
                                     </div>
                                     <span className="shrink-0 font-mono tabular text-lg font-semibold text-primary">
-                                        {a.value < 1 ? `${Math.round(a.value * 10000) / 100}%` : a.value.toLocaleString()}
+                                        {a.value < 1 ? formatPercent(a.value) : a.value.toLocaleString()}
                                     </span>
                                 </div>
                             ))}

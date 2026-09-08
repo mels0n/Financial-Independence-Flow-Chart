@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Menu, ClipboardList } from "lucide-react";
 import { useFinancialStore } from "@/entities/financial/model/financialStore";
+import { useShallow } from "zustand/react/shallow";
 import { Currency } from "@/shared/ui/Currency/Currency";
 import { cn } from "@/shared/lib/utils";
 
@@ -12,9 +14,14 @@ interface MobileHeaderProps {
 }
 
 export function MobileHeader({ onOpenQuestLog, onOpenActionBoard, actionItemsCount = 0 }: MobileHeaderProps) {
-    const { profile, getRemainingBudget } = useFinancialStore();
-    const hasIncome = profile.monthlyIncome > 0;
-    const remaining = getRemainingBudget();
+    const { income, remaining } = useFinancialStore(
+        useShallow((s) => ({ income: s.profile.monthlyIncome, remaining: s.getRemainingBudget() }))
+    );
+    // Show the title until the persisted store has hydrated, so a mid-quest
+    // refresh does not flash the title and then jump to the budget figure.
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => setMounted(true), []);
+    const hasIncome = mounted && income > 0;
 
     return (
         <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-background/85 backdrop-blur-md border-b border-border z-40 px-4 flex items-center justify-between">

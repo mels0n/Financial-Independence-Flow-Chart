@@ -5,6 +5,7 @@ export const glossary: Record<string, string> = {
     "401k": "An employer-sponsored retirement savings plan. Allows you to save a portion of your paycheck before taxes (Traditional) or after taxes (Roth).",
     "Deductible": "The amount you pay for covered health care services before your insurance plan starts to pay.",
     "APR": "Annual Percentage Rate. The yearly interest you are charged on borrowed money.",
+    "Carried Balance": "The part of a credit card balance that rolls over past the due date and accrues interest. A card paid in full every month has no carried balance and does not count as debt; that spending is just part of your monthly expenses.",
     "MAGI": "Modified Adjusted Gross Income. Your household income with certain deductions added back. Used to determine eligibility for Roth IRA contributions.",
     "FICA": "Federal Insurance Contributions Act. A U.S. federal payroll tax covering two taxes: Social Security and Medicare.",
     "VTSAX": "Vanguard Total Stock Market Index Fund. A very popular low-cost mutual fund that invests in the entire US stock market.",

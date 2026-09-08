@@ -92,7 +92,7 @@ export function IncomeStep() {
                     </div>
                     <button
                         type="submit"
-                        disabled={!income}
+                        disabled={!(parseFloat(income.replace(/,/g, "")) > 0)}
                         aria-label="Continue"
                         className="p-4 bg-primary text-primary-foreground rounded-2xl transition-all hover:brightness-110 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                     >

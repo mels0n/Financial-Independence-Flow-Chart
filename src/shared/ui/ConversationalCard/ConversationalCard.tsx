@@ -12,7 +12,6 @@ interface ConversationalCardProps {
     mode?: "input" | "advice" | "summary";
     /** Step icon drawn in the card header; replaces the old emoji-in-title habit */
     icon?: LucideIcon;
-    isActive?: boolean;
     className?: string;
 }
 
@@ -22,17 +21,12 @@ export function ConversationalCard({
     children,
     mode = "input",
     icon: Icon,
-    isActive = true,
     className
 }: ConversationalCardProps) {
     return (
         <motion.div
             initial={{ opacity: 0, y: 40, scale: 0.97 }}
-            animate={{
-                opacity: isActive ? 1 : 0.6,
-                y: 0,
-                scale: 1,
-            }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ type: "spring", damping: 22, stiffness: 260 }}
             className={cn(

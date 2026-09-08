@@ -1,11 +1,9 @@
 "use client";
 
 import { useFinancialStore } from "@/entities/financial/model/financialStore";
-import { FLOW_STEPS } from "@/shared/config/flow";
+import { FLOW_STEPS, INVESTMENT_STEP_IDS } from "@/shared/config/flow";
 import { Currency } from "@/shared/ui/Currency/Currency";
 import { cn } from "@/shared/lib/utils";
-
-const INVESTMENT_STEPS = new Set(["match-employer", "hsa", "ira", "max-401k", "mega-backdoor", "education", "taxable"]);
 
 interface PlanLedgerProps {
     className?: string;
@@ -25,9 +23,11 @@ export function PlanLedger({ className }: PlanLedgerProps) {
     const income = profile.monthlyIncome;
     const totalAllocated = rows.reduce((acc, r) => acc + r.amount, 0);
     const totalInvesting = rows
-        .filter((r) => INVESTMENT_STEPS.has(r.step.id))
+        .filter((r) => INVESTMENT_STEP_IDS.has(r.step.id))
         .reduce((acc, r) => acc + r.amount, 0);
-    const savingsRate = income > 0 ? Math.round((totalAllocated / income) * 100) : 0;
+    // Same definition as the taxable step: investing / income (debt payoff and
+    // emergency savings are not "savings rate").
+    const savingsRate = income > 0 ? Math.round((totalInvesting / income) * 100) : 0;
 
     if (rows.length === 0) return null;
 

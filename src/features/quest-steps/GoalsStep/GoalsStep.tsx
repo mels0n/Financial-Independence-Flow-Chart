@@ -51,7 +51,7 @@ export function GoalsStep() {
     };
 
     const handleLumpSumCommit = () => {
-        setProfileBase({ excessCash: excessCash - targetVal });
+        useFinancialStore.getState().spendExcess('goals', targetVal);
         useFinancialStore.getState().addActionItem({
             id: 'save-goal-lump-sum',
             stepId: 'goals',

@@ -7,7 +7,7 @@ import { ConversationalCard } from "@/shared/ui/ConversationalCard/Conversationa
 import { RecommendationBlock } from "@/shared/ui/RecommendationBlock/RecommendationBlock";
 import { Currency } from "@/shared/ui/Currency/Currency";
 import { ArrowRight, Building2, Repeat } from "lucide-react";
-import { cn } from "@/shared/lib/utils";
+import { cn, formatPercent } from "@/shared/lib/utils";
 
 export function Max401kStep() {
     const { nextStep, selectedYear, getRemainingBudget, profile, setAllocation } = useFinancialStore();
@@ -147,12 +147,13 @@ export function Max401kStep() {
                             { label: `${selectedYear} employee limit (${limitDescription})`, value: `$${limit.toLocaleString()}` },
                             { label: "Already contributed", value: `− $${alreadyContributed.toLocaleString()}` },
                             { label: "Spread across 12 months", value: "÷ 12" },
-                            { label: "Monthly to hit the max", value: `$${monthlyToMax.toLocaleString()}`, total: true },
+                            { label: "Monthly to hit the max", value: `$${monthlyToMax.toLocaleString()}` },
                             { label: "Your free budget (the cap)", value: `$${remainingBudget.toLocaleString()}` },
-                            { label: `Tax saved: $${recommended.toLocaleString()} × ${bracket * 100}%`, value: `≈ $${predictedTaxSavings.toLocaleString()}/mo` },
+                            { label: "This plan allocates", value: `$${recommended.toLocaleString()}/mo`, total: true },
+                            { label: `Tax saved: $${recommended.toLocaleString()} × ${formatPercent(bracket)}`, value: `≈ $${predictedTaxSavings.toLocaleString()}/mo` },
                         ]}
                         assumptions={`${ASSUMPTIONS.marginalFederalRateHigh.detail} Contributions go through payroll deduction; you cannot transfer cash into a 401(k) directly.`}
-                        source={{ ...yearMeta.sources.k401, projected: yearMeta.status === "projected" }}
+                        source={yearMeta.sources.k401}
                     >
                         <button
                             onClick={handleNext}

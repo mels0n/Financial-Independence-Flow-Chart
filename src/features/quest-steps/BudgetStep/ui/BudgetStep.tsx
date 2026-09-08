@@ -87,7 +87,7 @@ export function BudgetStep() {
                             onClick={calculateEstimate}
                             className="w-full py-3 bg-primary text-primary-foreground rounded-xl font-bold transition-all hover:brightness-110 active:scale-[0.99]"
                         >
-                            Use <Currency value={income * ASSUMPTIONS.expenseEstimateRatio.value} className="font-bold" perClassName="text-primary-foreground/70" /> (80% estimate)
+                            Use <Currency value={income * ASSUMPTIONS.expenseEstimateRatio.value} className="font-bold" /> (80% estimate)
                         </button>
                     </div>
 
@@ -153,7 +153,13 @@ export function BudgetStep() {
                         <div className="h-px bg-border my-2.5" aria-hidden />
                         <div className="flex justify-between items-center">
                             <dt className="text-sm font-semibold text-foreground">Free cash flow</dt>
-                            <dd><Currency value={advice.disposable} per="mo" className="text-2xl font-bold text-success" /></dd>
+                            <dd>
+                                <Currency
+                                    value={advice.disposable}
+                                    per="mo"
+                                    className={`text-2xl font-bold ${advice.disposable > 0 ? "text-success" : advice.disposable < 0 ? "text-destructive" : "text-muted-foreground"}`}
+                                />
+                            </dd>
                         </div>
                     </dl>
                 </div>

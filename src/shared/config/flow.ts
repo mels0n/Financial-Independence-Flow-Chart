@@ -2,6 +2,9 @@
 // The store, QuestFlow, QuestBar, and the sources page all derive from this file;
 // never redeclare step order anywhere else.
 
+import { Map as MapIcon, Shield, Sparkles, Rocket } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+
 export type StepId =
     | 'year-selection'
     | 'income'
@@ -115,6 +118,23 @@ export const FLOW_STEPS: FlowStep[] = [
 
 /** Ordered step ids, ending with the terminal 'completed' state. */
 export const FLOW_ORDER: StepId[] = [...FLOW_STEPS.map((s) => s.id), 'completed'];
+
+/** One badge icon per phase, shared by the Quest Log shelf and the milestone toast. */
+export const PHASE_ICONS: Record<PhaseId, LucideIcon> = {
+    foundation: MapIcon,
+    protect: Shield,
+    grow: Sparkles,
+    optimize: Rocket,
+};
+
+/**
+ * Steps whose allocations count as investing (the "wealth engine"). The savings
+ * rate everywhere = investment allocations / income; debt payoff and emergency
+ * savings are good moves but not investing.
+ */
+export const INVESTMENT_STEP_IDS: ReadonlySet<StepId> = new Set<StepId>([
+    'match-employer', 'hsa', 'ira', 'max-401k', 'mega-backdoor', 'education', 'taxable',
+]);
 
 const stepIndexById = new Map<StepId, number>(FLOW_STEPS.map((s, i) => [s.id, i]));
 

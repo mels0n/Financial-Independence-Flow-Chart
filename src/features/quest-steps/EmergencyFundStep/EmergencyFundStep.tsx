@@ -21,35 +21,30 @@ export function EmergencyFundStep({ mode = "starter" }: EmergencyFundStepProps) 
         }
         return 'ask-amount';
     });
+    // Raw digits only: a comma-formatted prefill is rejected by <input type="number">
+    // and renders an empty field that still submits its hidden value.
     const [currentSavings, setCurrentSavings] = useState(
         profile.emergencyFundAmount > 0
-            ? profile.emergencyFundAmount.toLocaleString()
+            ? String(profile.emergencyFundAmount)
             : ""
     );
-    useEffect(() => {
-        if (!currentSavings && profile.emergencyFundAmount > 0) {
-            setCurrentSavings(profile.emergencyFundAmount.toLocaleString());
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [profile.emergencyFundAmount]);
 
     const [isStable, setIsStable] = useState(true);
     const [showAdvice, setShowAdvice] = useState(false);
-    const [isHysaLocal, setIsHysaLocal] = useState(profile.isHysa);
-
-    useEffect(() => {
-        setIsHysaLocal(profile.isHysa);
-    }, [profile.isHysa]);
+    const [isHysaLocal, setIsHysaLocal] = useState(() => profile.isHysa);
 
     const [sliderMonths, setSliderMonths] = useState(3);
 
     const starterTarget = profile.monthlyExpenses * 1;
-    const fullTarget3 = profile.monthlyExpenses * 3;
-    const fullTarget6 = profile.monthlyExpenses * 6;
 
     const derivedVal = parseFloat(currentSavings.replace(/,/g, "")) || 0;
-    const derivedTarget = mode === "starter" ? starterTarget : (isStable ? fullTarget3 : fullTarget6);
+    // Must track the SAME target the user sees (the slider), or the stored surplus
+    // contradicts the on-screen numbers and later steps lump-sum the wrong cash.
+    const derivedTarget = mode === "starter" ? starterTarget : profile.monthlyExpenses * sliderMonths;
     const derivedExcess = Math.max(0, derivedVal - derivedTarget);
+
+    const parsedSavings = parseFloat(currentSavings.replace(/,/g, ""));
+    const savingsInputValid = currentSavings.trim() !== "" && !isNaN(parsedSavings) && parsedSavings >= 0;
 
     useEffect(() => {
         if (showAdvice) {
@@ -365,7 +360,8 @@ export function EmergencyFundStep({ mode = "starter" }: EmergencyFundStepProps) 
 
                 <button
                     type="submit"
-                    className="w-full p-4 bg-primary text-primary-foreground rounded-2xl transition-all hover:brightness-110 active:scale-[0.99] font-bold text-lg flex items-center justify-center gap-2"
+                    disabled={!savingsInputValid}
+                    className="w-full p-4 bg-primary text-primary-foreground rounded-2xl transition-all hover:brightness-110 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed font-bold text-lg flex items-center justify-center gap-2"
                 >
                     Continue <ArrowRight className="w-5 h-5" aria-hidden />
                 </button>

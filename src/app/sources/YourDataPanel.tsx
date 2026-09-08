@@ -17,13 +17,20 @@ export function YourDataPanel() {
     const [mounted, setMounted] = useState(false);
     useEffect(() => setMounted(true), []);
 
-    const { profile, allocations, actionItems, selectedYear, currentStep } = useFinancialStore();
+    const { profile, allocations, actionItems, selectedYear, currentStep, history } = useFinancialStore();
 
     if (!mounted) {
         return <div className="h-40 animate-pulse rounded-2xl bg-secondary/50" aria-hidden />;
     }
 
-    const hasData = profile.monthlyIncome > 0 || actionItems.length > 0 || Object.keys(allocations).length > 0;
+    // Any progress at all counts as data: this panel must never claim "nothing"
+    // while the store holds something.
+    const hasData = history.length > 0
+        || profile.monthlyIncome > 0
+        || profile.monthlyExpenses > 0
+        || profile.emergencyFundAmount > 0
+        || actionItems.length > 0
+        || Object.keys(allocations).length > 0;
 
     if (!hasData) {
         return (
@@ -40,7 +47,7 @@ export function YourDataPanel() {
         { label: "Monthly take-home income", value: <Currency value={profile.monthlyIncome} className="text-sm" /> },
         { label: "Monthly expenses", value: <Currency value={profile.monthlyExpenses} className="text-sm" /> },
         { label: "Emergency fund saved", value: <Currency value={profile.emergencyFundAmount} className="text-sm" /> },
-        { label: "Current step", value: getFlowStep(currentStep as StepId)?.label ?? currentStep },
+        { label: "Current step", value: getFlowStep(currentStep)?.label ?? currentStep },
     ];
 
     return (

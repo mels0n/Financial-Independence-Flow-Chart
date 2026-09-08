@@ -3,17 +3,9 @@
 import { useEffect, useRef } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useFinancialStore } from "@/entities/financial/model/financialStore";
-import { getPhase, getPhaseSteps, type PhaseId } from "@/shared/config/flow";
+import { getPhase, getPhaseSteps, PHASE_ICONS } from "@/shared/config/flow";
 import { Currency } from "@/shared/ui/Currency/Currency";
-import { Map, Shield, Sparkles, Rocket } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
-
-const PHASE_ICONS: Record<PhaseId, LucideIcon> = {
-    foundation: Map,
-    protect: Shield,
-    grow: Sparkles,
-    optimize: Rocket,
-};
+import { Map } from "lucide-react";
 
 const TOAST_MS = 4500;
 
@@ -22,7 +14,10 @@ const TOAST_MS = 4500;
  * Quest Log shelf; this toast plus a one-second confetti burst announces it.
  */
 export function MilestoneToast() {
-    const { celebratingPhase, clearCelebration, allocations } = useFinancialStore();
+    // Narrow subscription: this always-mounted component only re-renders when a
+    // celebration actually starts or ends, not on every store write.
+    const celebratingPhase = useFinancialStore((s) => s.celebratingPhase);
+    const clearCelebration = useFinancialStore((s) => s.clearCelebration);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const reducedMotion = useReducedMotion();
 
@@ -92,7 +87,9 @@ export function MilestoneToast() {
     }, [celebratingPhase, reducedMotion]);
 
     const phase = celebratingPhase ? getPhase(celebratingPhase) : null;
-    const phaseTotal = celebratingPhase
+    // One-shot read at celebration time; no reactive subscription needed.
+    const allocations = celebratingPhase ? useFinancialStore.getState().allocations : null;
+    const phaseTotal = celebratingPhase && allocations
         ? getPhaseSteps(celebratingPhase).reduce((acc, s) => acc + (allocations[s.id] ?? 0), 0)
         : 0;
     const Icon = celebratingPhase ? PHASE_ICONS[celebratingPhase] : Map;
