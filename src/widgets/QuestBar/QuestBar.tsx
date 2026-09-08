@@ -59,7 +59,7 @@ export function QuestBar({ className }: QuestBarProps) {
     const pct = (v: number) => (income > 0 ? Math.max(0, (v / income) * 100) : 0);
 
     return (
-        <div className={cn("hidden lg:flex flex-col w-80 h-screen sticky top-0 bg-background border-r border-border overflow-y-auto", className)}>
+        <div className={cn("hidden lg:flex flex-col w-80 h-screen sticky top-0 bg-background border-r border-border overflow-y-auto overflow-x-hidden", className)}>
             <div className="p-6 pb-4">
                 <div className="flex items-baseline justify-between mb-5">
                     <h2 className="font-display text-xl font-bold text-foreground flex items-center gap-2">
@@ -189,8 +189,10 @@ export function QuestBar({ className }: QuestBarProps) {
                     })}
                 </nav>
 
-                {/* Badge shelf: gold appears here and nowhere else */}
-                <div className="mt-7 border-t border-border pt-5">
+                {/* Badge shelf: gold appears here and nowhere else.
+                    position:relative so badge tooltips anchor to the shelf's full
+                    width instead of poking past the rail edge. */}
+                <div className="relative mt-7 border-t border-border pt-5">
                     <h3 className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground mb-3">
                         Badges
                     </h3>
@@ -253,7 +255,9 @@ interface BadgeChipProps {
 function BadgeChip({ earned, name, icon: Icon, lore, howToEarn }: BadgeChipProps) {
     const tooltipId = useId();
     return (
-        <span className="group relative inline-block">
+        // No `relative` here: the tooltip anchors to the shelf container so it
+        // spans the rail instead of overflowing it (which grew a scrollbar).
+        <span className="group inline-block">
             <span
                 tabIndex={0}
                 aria-describedby={tooltipId}
@@ -270,7 +274,7 @@ function BadgeChip({ earned, name, icon: Icon, lore, howToEarn }: BadgeChipProps
             <span
                 id={tooltipId}
                 role="tooltip"
-                className="pointer-events-none invisible absolute bottom-full left-0 z-30 mb-2 w-60 rounded-xl border border-border bg-popover p-3 text-left opacity-0 shadow-lg shadow-background/60 transition-opacity duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
+                className="pointer-events-none invisible absolute inset-x-0 bottom-full z-30 mb-2 rounded-xl border border-border bg-popover p-3 text-left opacity-0 shadow-lg shadow-background/60 transition-opacity duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
             >
                 <span className={cn(
                     "mb-1 block font-mono text-[10px] font-semibold uppercase tracking-[0.14em]",
